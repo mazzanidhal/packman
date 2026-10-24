@@ -144,4 +144,318 @@
     </div>
 
     <!-- End Modal -->
-    <div id="end-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-
+    <div id="end-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-900 border border-gray-800 p-6 rounded-lg max-w-md w-full text-center">
+            <h2 class="text-2xl font-bold text-green-400 mb-2">Assessment Complete!</h2>
+            <p class="text-sm text-gray-400 mb-4">Your behavioral event stream has been transmitted.</p>
+            <button onclick="location.reload()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded">Restart Simulation</button>
+        </div>
+    </div>
+
+<script>
+/* CONFIGURATION */
+const GOOGLE_WEB_APP_URL = "https://script.google.com/a/macros/tamu.edu/s/AKfycbybDNP2q6Gw-WpKItRRAnI1jJQvHxko_RMdeiSCfW9EkhODyTXqlWM88YrgLzp1VDkU/exec"; 
+const SESSION_ID = 'SESS-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+const INPUT_DEVICE_TYPE = ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'Touchscreen' : 'Mouse/Trackpad';
+
+function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => console.error(err));
+    } else if (document.exitFullscreen) {
+        document.exitFullscreen();
+    }
+}
+
+/* STATE VARIABLES */
+let currentBlock = 1;
+const TOTAL_BLOCKS = 3;
+const BLOCK_DURATION = 120;
+
+let score = 0;
+let itemsProcessedInBlock = 0;
+let mandatoryQuota = 15;
+let timeLeft = BLOCK_DURATION;
+let timerInterval = null;
+let gameActive = false;
+
+let totalFilesSorted = 0;
+let cardRenderTimestamp = 0;
+
+let processedFiles = [];
+let decisionLatencies = [];
+let eventBuffer = [];
+
+function recordEvent(category, eventName, detail = "", latencyMs = "") {
+    const eventObj = {
+        sessionId: SESSION_ID,
+        timestamp: new Date().toISOString(),
+        block: currentBlock,
+        timeLeft: timeLeft,
+        category: category,
+        eventName: eventName,
+        detail: `${detail} [Device: ${INPUT_DEVICE_TYPE}]`,
+        latencyMs: latencyMs,
+        currentScore: score
+    };
+
+    eventBuffer.push(eventObj);
+
+    if (eventBuffer.length >= 10) {
+        flushEventBuffer();
+    }
+}
+
+function flushEventBuffer() {
+    if (eventBuffer.length === 0) return;
+
+    const payload = {
+        sessionId: SESSION_ID,
+        events: [...eventBuffer]
+    };
+
+    const dataString = JSON.stringify(payload);
+    eventBuffer = [];
+
+    if (navigator.sendBeacon) {
+        const blob = new Blob([dataString], { type: 'application/json' });
+        navigator.sendBeacon(GOOGLE_WEB_APP_URL, blob);
+    } else {
+        fetch(GOOGLE_WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: dataString
+        }).catch(err => console.error("Batch flush error:", err));
+    }
+}
+
+window.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+        flushEventBuffer();
+    }
+});
+window.addEventListener('beforeunload', () => {
+    flushEventBuffer();
+});
+
+setInterval(() => {
+    if (gameActive && eventBuffer.length > 0) {
+        flushEventBuffer();
+    }
+}, 10000);
+
+const categories = ['Category A', 'Category B'];
+
+function generateCard(index) {
+    const type = categories[Math.floor(Math.random() * categories.length)];
+    return {
+        id: `DOC-${100 + index}`,
+        name: type === 'Category A' ? 'Alpha Record' : 'Beta Ledger',
+        type: type
+    };
+}
+
+function startSimulation() {
+    document.getElementById('instructions-modal').classList.add('hidden');
+    gameActive = true;
+    recordEvent("USER_ACTION", "START_SIMULATION_CLICK", "User initiated simulation");
+    startBlock(1);
+}
+
+function startBlock(blockNum) {
+    currentBlock = blockNum;
+    itemsProcessedInBlock = 0;
+    timeLeft = BLOCK_DURATION;
+    
+    document.getElementById('block-display').innerText = `${currentBlock} of ${TOTAL_BLOCKS}`;
+    document.getElementById('quota-display').innerText = `${itemsProcessedInBlock} / ${mandatoryQuota}`;
+    document.getElementById('quota-banner').classList.add('hidden');
+    
+    recordEvent("SYSTEM_EVENT", "BLOCK_STARTED", `Block ${currentBlock} initiated`);
+
+    currentCard = generateCard(totalFilesSorted + 1);
+    renderCard();
+    renderOutbox();
+
+    if (timerInterval) clearInterval(timerInterval);
+    
+    timerInterval = setInterval(() => {
+        if (!gameActive) return;
+        timeLeft--;
+        document.getElementById('timer-display').innerText = timeLeft;
+
+        if (timeLeft === 60 && processedFiles.length >= 4 && !processedFiles[3].hasBeenCorrupted) {
+            injectSilentError(processedFiles[3].id);
+        }
+
+        if (timeLeft <= 0) {
+            recordEvent("SYSTEM_EVENT", "BLOCK_TIMEOUT", `Block ${currentBlock} expired`);
+            advanceBlock();
+        }
+    }, 1000);
+}
+
+function renderCard() {
+    document.getElementById('card-id').innerText = currentCard.id;
+    document.getElementById('card-name').innerText = currentCard.name;
+    document.getElementById('card-type').innerText = currentCard.type;
+    
+    const cardElem = document.getElementById('card-type');
+    if (currentCard.type === 'Category A') {
+        cardElem.className = "inline-block px-4 py-1.5 text-xs rounded-full bg-blue-900/50 text-blue-300 font-bold tracking-wide";
+    } else {
+        cardElem.className = "inline-block px-4 py-1.5 text-xs rounded-full bg-purple-900/50 text-purple-300 font-bold tracking-wide";
+    }
+
+    cardRenderTimestamp = performance.now();
+    recordEvent("SYSTEM_EVENT", "CARD_RENDERED", `Card ${currentCard.id} displayed`);
+}
+
+function sortActiveCard(selectedCategory) {
+    if (!gameActive) return;
+
+    const clickTimestamp = performance.now();
+    const latency = Math.round(clickTimestamp - cardRenderTimestamp);
+    decisionLatencies.push(latency);
+
+    totalFilesSorted++;
+    itemsProcessedInBlock++;
+    
+    const isCorrect = selectedCategory === currentCard.type;
+    if (isCorrect) score += 10;
+    
+    recordEvent(
+        "USER_ACTION", 
+        "SORT_CLICK", 
+        `Filed ${currentCard.id} to ${selectedCategory} (Correct: ${isCorrect})`, 
+        latency
+    );
+
+    processedFiles.unshift({
+        id: currentCard.id,
+        name: currentCard.name,
+        type: currentCard.type,
+        filedAs: selectedCategory,
+        isCorrupted: false,
+        auditCount: 0
+    });
+
+    document.getElementById('quota-display').innerText = `${itemsProcessedInBlock} / ${mandatoryQuota}`;
+    document.getElementById('score-display').innerText = score;
+
+    if (itemsProcessedInBlock === mandatoryQuota) {
+        document.getElementById('quota-banner').classList.remove('hidden');
+        recordEvent("SYSTEM_EVENT", "QUOTA_UNLOCKED", `Mandatory quota met`);
+    } else if (itemsProcessedInBlock > mandatoryQuota) {
+        recordEvent("USER_ACTION", "OVER_QUOTA_SORT", `Sorted optional item #${itemsProcessedInBlock}`);
+    }
+
+    renderOutbox();
+    currentCard = generateCard(totalFilesSorted + 1);
+    renderCard();
+}
+
+function injectSilentError(docId) {
+    const file = processedFiles.find(f => f.id === docId);
+    if (file) {
+        file.isCorrupted = true;
+        file.hasBeenCorrupted = true;
+        file.filedAs = file.type === 'Category A' ? 'Category B' : 'Category A';
+        recordEvent("SYSTEM_EVENT", "SILENT_ERROR_INJECTED", `Doc ${docId} corrupted without UI prompt`);
+    }
+}
+
+function auditAndFixOutboxFile(docId) {
+    if (!gameActive) return;
+    
+    const file = processedFiles.find(f => f.id === docId);
+    if (file) {
+        file.auditCount++;
+        
+        if (file.isCorrupted) {
+            file.isCorrupted = false;
+            file.filedAs = file.type;
+            score += 15;
+            document.getElementById('score-display').innerText = score;
+            recordEvent("USER_ACTION", "VOLUNTARY_AUDIT_FIX", `User inspected and corrected doc ${docId}`);
+        } else {
+            recordEvent("USER_ACTION", "VOLUNTARY_AUDIT_INSPECT", `User inspected doc ${docId} (Already Correct)`);
+        }
+        renderOutbox();
+    }
+}
+
+function renderOutbox() {
+    const list = document.getElementById('outbox-list');
+    list.innerHTML = '';
+
+    const visibleFiles = processedFiles.slice(0, 15);
+
+    visibleFiles.forEach((file) => {
+        const item = document.createElement('div');
+        
+        item.className = "p-2.5 bg-gray-900 border border-gray-800 rounded text-xs flex justify-between items-center hover:border-gray-700 transition cursor-pointer";
+        item.onclick = () => auditAndFixOutboxFile(file.id);
+
+        item.innerHTML = `
+            <div>
+                <span class="font-bold font-mono text-gray-200">${file.id}</span>
+                <span class="ml-2 text-[10px] text-gray-500">Filed: ${file.filedAs}</span>
+            </div>
+            <span class="text-[10px] text-gray-500 hover:text-blue-400">🔍 Inspect</span>
+        `;
+        list.appendChild(item);
+    });
+}
+
+function advanceBlock() {
+    if (timeLeft > 0 && itemsProcessedInBlock >= mandatoryQuota) {
+        const meanLatencySec = decisionLatencies.length > 0 
+            ? (decisionLatencies.reduce((a,b)=>a+b,0) / decisionLatencies.length) / 1000 
+            : 1.5;
+            
+        const estimatedFilesRemaining = Math.floor(timeLeft / meanLatencySec);
+        const calibratedBonus = estimatedFilesRemaining * 15;
+        
+        score += calibratedBonus;
+        recordEvent("USER_ACTION", "ADVANCE_EARLY_CLICK", `Claimed calibrated bonus of +${calibratedBonus} pts (${estimatedFilesRemaining} est. files)`);
+        document.getElementById('score-display').innerText = score;
+    }
+
+    if (currentBlock < TOTAL_BLOCKS) {
+        startBlock(currentBlock + 1);
+    } else {
+        endGame();
+    }
+}
+
+function confirmEarlyFinish() {
+    document.getElementById('confirm-modal').classList.remove('hidden');
+}
+
+function cancelEarlyFinish() {
+    document.getElementById('confirm-modal').classList.add('hidden');
+}
+
+function executeEarlyFinish() {
+    document.getElementById('confirm-modal').classList.add('hidden');
+    recordEvent("USER_ACTION", "EARLY_EXIT_CLICK", `User exited simulation early during Block ${currentBlock}`);
+    endGame();
+}
+
+function endGame() {
+    if (!gameActive) return;
+    gameActive = false;
+    clearInterval(timerInterval);
+
+    const mean = decisionLatencies.length > 0 ? decisionLatencies.reduce((a,b)=>a+b,0)/decisionLatencies.length : 0;
+    const variance = decisionLatencies.length > 0 ? decisionLatencies.reduce((a,b)=>a+Math.pow(b-mean, 2),0)/decisionLatencies.length : 0;
+    const sdLatency = Math.round(Math.sqrt(variance));
+
+    recordEvent("SYSTEM_EVENT", "ASSESSMENT_COMPLETE", `Final Score: ${score}, Total Files: ${totalFilesSorted}, SD_Latency_ms: ${sdLatency}`);
+    flushEventBuffer();
+    document.getElementById('end-modal').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
