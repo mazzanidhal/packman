@@ -221,19 +221,15 @@ function flushEventBuffer() {
     };
 
     const dataString = JSON.stringify(payload);
-    eventBuffer = [];
+    eventBuffer = []; // Clear local buffer
 
-    if (navigator.sendBeacon) {
-        const blob = new Blob([dataString], { type: 'application/json' });
-        navigator.sendBeacon(GOOGLE_WEB_APP_URL, blob);
-    } else {
-        fetch(GOOGLE_WEB_APP_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: dataString
-        }).catch(err => console.error("Batch flush error:", err));
-    }
+    // Use URLSearchParams to bypass strict CORS pre-flight checks on script.google.com
+    fetch(GOOGLE_WEB_APP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: dataString
+    }).catch(err => console.error("Batch flush error:", err));
 }
 
 window.addEventListener('visibilitychange', () => {
