@@ -22,7 +22,7 @@
             </div>
             <!-- Version Badge -->
             <span class="px-2 py-0.5 bg-blue-950 border border-blue-700 text-blue-300 font-mono text-[10px] rounded font-bold">
-                v2.6.0-PsychometricEngine
+                v2.8.0-CleanStroop
             </span>
         </div>
         <div class="flex items-center gap-3">
@@ -68,7 +68,7 @@
                 
                 <div id="active-card" class="card bg-gray-800 border-2 border-blue-500 rounded-xl p-8 w-80 text-center my-auto shadow-2xl">
                     <div id="card-id" class="text-sm text-blue-400 font-mono mb-2 font-bold">DOC-101</div>
-                    <div id="card-name" class="text-2xl font-bold text-white mb-2">Alpha Record</div>
+                    <div id="card-name" class="text-2xl font-bold text-white mb-2">Quarterly Audit Report</div>
                     <div id="card-rule-detail" class="text-xs text-gray-400 mb-3 font-mono">Region: US-East</div>
                     <div id="card-type" class="inline-block px-4 py-1.5 text-xs rounded-full bg-blue-900/50 text-blue-300 font-bold tracking-wide">Category A</div>
                 </div>
@@ -106,7 +106,7 @@
                     <div class="text-blue-400 text-lg">📁</div>
                     <div>
                         <span class="font-bold text-white text-sm block mb-0.5">1. Primary Task</span>
-                        Match incoming documents to <span class="text-blue-300 font-semibold">Category A</span> or <span class="text-purple-300 font-semibold">Category B</span>. Pay close attention to multi-rule requirements on complex files.
+                        Match incoming documents strictly by their <span class="text-white font-bold">Text Classification Badge</span> (e.g., Category A vs Category B). Pay close attention, as visual badge colors may vary independently!
                     </div>
                 </div>
                 <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
@@ -155,8 +155,7 @@
 
 <script>
 /* CONFIGURATION */
-/* CONFIGURATION */
-const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbybDNP2q6Gw-WpKItRRAnI1jJQvHxko_RMdeiSCfW9EkhODyTXqlWM88YrgLzp1VDkU/exec";
+const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbybDNP2q6Gw-WpKItRRAnI1jJQvHxko_RMdeiSCfW9EkhODyTXqlWM88YrgLzp1VDkU/exec"; 
 const SESSION_ID = 'SESS-' + Math.random().toString(36).substr(2, 9).toUpperCase();
 const INPUT_DEVICE_TYPE = ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'Touchscreen' : 'Mouse/Trackpad';
 
@@ -221,9 +220,8 @@ function flushEventBuffer() {
     };
 
     const dataString = JSON.stringify(payload);
-    eventBuffer = []; // Clear local buffer
+    eventBuffer = [];
 
-    // Use URLSearchParams to bypass strict CORS pre-flight checks on script.google.com
     fetch(GOOGLE_WEB_APP_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -249,19 +247,38 @@ setInterval(() => {
 
 const categories = ['Category A', 'Category B'];
 const regions = ['US-East', 'US-West', 'EU-Central'];
+const documentTitles = [
+    'Quarterly Audit Report',
+    'Employee Record',
+    'Financial Ledger',
+    'Compliance Assessment',
+    'Vendor Invoice',
+    'Operations Summary'
+];
+const badgeStyles = [
+    'bg-blue-900/50 text-blue-300 border border-blue-700/50',
+    'bg-purple-900/50 text-purple-300 border border-purple-700/50'
+];
 
-// Variable-Complexity Document Generator (Facet Strain Test)
+// Neutral Titles + Independent Color/Text Randomization (Stroop Strain Test)
 function generateCard(index) {
-    const isComplex = index % 3 === 0; // Every 3rd document requires multi-field inspection
-    const type = categories[Math.floor(Math.random() * categories.length)];
-    const region = regions[Math.floor(Math.random() * regions.length)];
+    const isComplex = index % 3 === 0;
     
+    // 1. Ground truth target category required for sorting
+    const targetType = categories[Math.floor(Math.random() * categories.length)];
+    const region = regions[Math.floor(Math.random() * regions.length)];
+    const baseTitle = documentTitles[Math.floor(Math.random() * documentTitles.length)];
+    
+    // 2. Visual badge color randomized independently (~50% match / ~50% mismatch)
+    const randomBadgeStyle = badgeStyles[Math.floor(Math.random() * badgeStyles.length)];
+
     return {
         id: `DOC-${100 + index}`,
-        name: isComplex ? `${type} Ledger (Multi-Field)` : `${type} Record`,
-        type: type,
+        name: isComplex ? `${baseTitle} (Multi-Field)` : baseTitle,
+        type: targetType,
         region: region,
-        isComplex: isComplex
+        isComplex: isComplex,
+        badgeStyle: randomBadgeStyle
     };
 }
 
@@ -295,7 +312,6 @@ function startBlock(blockNum) {
         timeLeft--;
         document.getElementById('timer-display').innerText = timeLeft;
 
-        // C3 Dutifulness Compliance Check Trigger
         if (timeLeft === 60 && processedFiles.length >= 4 && !complianceFlagTimestamp) {
             triggerComplianceFlag();
         }
@@ -311,17 +327,13 @@ function renderCard() {
     document.getElementById('card-id').innerText = currentCard.id;
     document.getElementById('card-name').innerText = currentCard.name;
     document.getElementById('card-rule-detail').innerText = `Region: ${currentCard.region} | Complexity: ${currentCard.isComplex ? 'High' : 'Standard'}`;
-    document.getElementById('card-type').innerText = currentCard.type;
     
     const cardElem = document.getElementById('card-type');
-    if (currentCard.type === 'Category A') {
-        cardElem.className = "inline-block px-4 py-1.5 text-xs rounded-full bg-blue-900/50 text-blue-300 font-bold tracking-wide";
-    } else {
-        cardElem.className = "inline-block px-4 py-1.5 text-xs rounded-full bg-purple-900/50 text-purple-300 font-bold tracking-wide";
-    }
+    cardElem.innerText = currentCard.type;
+    cardElem.className = `inline-block px-4 py-1.5 text-xs rounded-full font-bold tracking-wide ${currentCard.badgeStyle}`;
 
     cardRenderTimestamp = performance.now();
-    recordEvent("SYSTEM_EVENT", "CARD_RENDERED", `Card ${currentCard.id} (Complex: ${currentCard.isComplex}) displayed`);
+    recordEvent("SYSTEM_EVENT", "CARD_RENDERED", `Card ${currentCard.id} (Type: ${currentCard.type}, Complex: ${currentCard.isComplex}) displayed`);
 }
 
 function sortActiveCard(selectedCategory) {
@@ -352,7 +364,9 @@ function sortActiveCard(selectedCategory) {
         name: currentCard.name,
         type: currentCard.type,
         filedAs: selectedCategory,
-        isComplex: currentCard.isComplex
+        region: currentCard.region,
+        isComplex: currentCard.isComplex,
+        badgeStyle: currentCard.badgeStyle
     });
 
     document.getElementById('quota-display').innerText = `${itemsProcessedInBlock} / ${mandatoryQuota}`;
@@ -375,23 +389,41 @@ function triggerComplianceFlag() {
     recordEvent("SYSTEM_EVENT", "COMPLIANCE_FLAG_ISSUED", "System compliance review triggered for C3 Dutifulness metric");
 }
 
-// C2 Orderliness: Spontaneous Auditing on completely neutral, unflagged items
+// C2 Orderliness & Active Outbox Document Inspection
 function auditOutboxItem(docId) {
     if (!gameActive) return;
     
+    const file = processedFiles.find(f => f.id === docId);
+    if (!file) return;
+
     spontaneousAudits++;
     
-    // Resolve C3 Dutifulness latency if compliance flag is active
     if (complianceFlagTimestamp && !complianceResolutionLatency) {
         complianceResolutionLatency = Math.round(performance.now() - complianceFlagTimestamp);
-        recordEvent("USER_ACTION", "DUTIFULNESS_COMPLIANCE_RESOLVED", `Compliance check resolved`, complianceResolutionLatency);
+        recordEvent("USER_ACTION", "DUTIFULNESS_COMPLIANCE_RESOLVED", `Compliance check resolved for ${docId}`, complianceResolutionLatency);
     }
 
-    recordEvent("USER_ACTION", "SPONTANEOUS_OUTBOX_AUDIT", `User voluntarily audited doc ${docId} (C2 Orderliness count: ${spontaneousAudits})`);
+    recordEvent("USER_ACTION", "SPONTANEOUS_OUTBOX_AUDIT", `User inspected doc ${docId} (C2 Orderliness count: ${spontaneousAudits})`);
+
+    // Render Inspection Visual Preview on the left card container
+    document.getElementById('card-id').innerText = `${file.id} (INSPECTING ARCHIVE)`;
+    document.getElementById('card-name').innerText = file.name;
+    document.getElementById('card-rule-detail').innerText = `Filed As: ${file.filedAs} | Required Category: ${file.type} | Region: ${file.region}`;
+    
+    const cardElem = document.getElementById('card-type');
+    cardElem.innerText = file.type;
+    cardElem.className = `inline-block px-4 py-1.5 text-xs rounded-full font-bold tracking-wide ${file.badgeStyle}`;
+
+    // Flash yellow highlight border on card for visual feedback
+    const cardBox = document.getElementById('active-card');
+    cardBox.classList.add('border-yellow-400');
+    setTimeout(() => {
+        cardBox.classList.remove('border-yellow-400');
+    }, 1500);
+
     renderOutbox();
 }
 
-// Neutral Outbox Styling (No yellow prompts / text badges)
 function renderOutbox() {
     const list = document.getElementById('outbox-list');
     list.innerHTML = '';
@@ -409,14 +441,13 @@ function renderOutbox() {
                 <span class="font-bold font-mono text-gray-200">${file.id}</span>
                 <span class="ml-2 text-[10px] text-gray-500">Filed: ${file.filedAs}</span>
             </div>
-            <span class="text-[10px] text-gray-500 hover:text-blue-400">🔍 Inspect</span>
+            <span class="text-[10px] text-gray-500 hover:text-blue-400 font-semibold">🔍 Inspect</span>
         `;
         list.appendChild(item);
     });
 }
 
 function advanceBlock() {
-    // Exponential Error Penalty on Speed Bonus (Anti-Gaming Mechanism)
     if (timeLeft > 0 && itemsProcessedInBlock >= mandatoryQuota) {
         const rawMeanLatency = decisionLatencies.length > 0 
             ? (decisionLatencies.reduce((a,b)=>a+b,0) / decisionLatencies.length) / 1000 
@@ -426,7 +457,6 @@ function advanceBlock() {
         const maxPossibleRemaining = Math.floor(timeLeft / 1.2);
         const estimatedRemaining = Math.min(maxPossibleRemaining, Math.floor(timeLeft / clampedMeanLatency));
         
-        // Exponential Accuracy Penalty: (Accuracy Rate)^2
         const accuracyRatio = itemsProcessedInBlock > 0 ? (correctInBlock / itemsProcessedInBlock) : 1.0;
         const exponentialPenalty = Math.pow(accuracyRatio, 2);
         
@@ -463,15 +493,13 @@ function endGame() {
     gameActive = false;
     clearInterval(timerInterval);
 
-    // Compute Latency Coefficient of Variation (CV = SD / Mean) for C1 Cautiousness
     const mean = decisionLatencies.length > 0 ? decisionLatencies.reduce((a,b)=>a+b,0)/decisionLatencies.length : 1;
     const variance = decisionLatencies.length > 0 ? decisionLatencies.reduce((a,b)=>a+Math.pow(b-mean, 2),0)/decisionLatencies.length : 0;
     const sdLatency = Math.sqrt(variance);
-    const cvLatency = (sdLatency / mean).toFixed(3); // Coefficient of Variation
+    const cvLatency = (sdLatency / mean).toFixed(3);
 
     const voluntaryExtraVolume = Math.max(0, totalFilesSorted - (TOTAL_BLOCKS * mandatoryQuota));
 
-    // Package Latent Conscientiousness Factors for backend standardization
     const latentSummary = `LCI_FACTORS | CV_Latency: ${cvLatency} | SpontaneousAudits_C2: ${spontaneousAudits} | DutifulnessLatency_C3_ms: ${complianceResolutionLatency || 'Deferred'} | AchievementVolume_C4: ${voluntaryExtraVolume} | OverallAccuracy: ${((correctInBlock/itemsProcessedInBlock)*100).toFixed(1)}%`;
 
     recordEvent("SYSTEM_EVENT", "ASSESSMENT_COMPLETE", latentSummary);
