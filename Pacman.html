@@ -6,76 +6,81 @@
     <title>Workplace Task Simulation</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #111; color: white; margin: 0; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+        body { background-color: #111; color: white; margin: 0; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; overflow: hidden; }
         .card { transition: all 0.2s ease; }
         .hidden { display: none !important; }
     </style>
 </head>
-<body class="select-none">
+<body class="select-none w-full min-h-screen p-4 flex flex-col items-center justify-start">
 
     <!-- Header Bar -->
-    <div class="w-full max-w-4xl px-4 py-2 flex justify-between items-center bg-gray-900 border-b border-gray-800 mb-4">
+    <div class="w-full max-w-6xl px-6 py-3 flex justify-between items-center bg-gray-900 border border-gray-800 rounded-t-lg mb-2 shadow-lg">
         <div>
-            <h1 class="text-xl font-bold text-blue-400">Virtual Office: Document Processing Audit</h1>
+            <h1 class="text-2xl font-bold text-blue-400">Virtual Office: Document Processing Audit</h1>
             <p class="text-xs text-gray-400">Section <span id="block-display" class="font-bold text-white">1 of 3</span> — Multi-Stage Quality Assessment</p>
         </div>
-        <button onclick="toggleFullScreen()" class="px-3 py-1 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded text-xs text-white transition">
-            ⛶ Fullscreen
-        </button>
+        <div class="flex items-center gap-3">
+            <button onclick="confirmEarlyFinish()" class="px-4 py-2 bg-red-900/80 hover:bg-red-800 border border-red-600 text-red-200 rounded text-xs transition font-semibold">
+                ⏹ Finish Assessment
+            </button>
+            <button onclick="toggleFullScreen()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded text-xs text-white transition font-semibold">
+                ⛶ Fullscreen
+            </button>
+        </div>
     </div>
 
-    <!-- Main Workspace -->
-    <div id="game-container" class="w-full max-w-4xl bg-gray-900 border border-gray-800 rounded-lg p-6 relative shadow-2xl">
+    <!-- Main Workspace Container -->
+    <div id="game-container" class="w-full max-w-6xl flex-1 bg-gray-900 border border-gray-800 rounded-b-lg p-6 relative shadow-2xl flex flex-col justify-between mb-4">
         
         <!-- Status Panel -->
-        <div class="flex justify-between items-center mb-4 bg-gray-800 p-3 rounded border border-gray-700">
+        <div class="flex justify-between items-center mb-6 bg-gray-800 p-4 rounded-lg border border-gray-700 text-base">
             <div>Quota Required: <span id="quota-display" class="font-bold text-yellow-400">0 / 15</span></div>
             <div>Time Remaining: <span id="timer-display" class="font-bold text-cyan-400">120</span>s</div>
             <div>Score: <span id="score-display" class="font-bold text-green-400">0</span></div>
         </div>
 
         <!-- Balanced Payoff Banner -->
-        <div id="quota-banner" class="hidden mb-4 p-3 bg-blue-950 border border-blue-500 rounded flex justify-between items-center">
+        <div id="quota-banner" class="hidden mb-6 p-4 bg-blue-950 border border-blue-500 rounded-lg flex justify-between items-center">
             <div class="text-left">
-                <div class="text-white text-sm font-bold">Mandatory Quota Met! Choose Strategy:</div>
-                <div class="text-xs text-blue-200">
+                <div class="text-white text-base font-bold">Mandatory Quota Met! Choose Strategy:</div>
+                <div class="text-xs text-blue-200 mt-1">
                     • <span class="text-yellow-300 font-semibold">Finish Block Now:</span> Claim +15 Speed Bonus points per remaining second.<br>
                     • <span class="text-green-300 font-semibold">Continue Filing:</span> Earn +15 Yield points for every extra document sorted.
                 </div>
             </div>
-            <button id="advance-btn" onclick="advanceBlock()" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-xs rounded shadow transition ml-4">
+            <button id="advance-btn" onclick="advanceBlock()" class="px-5 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-xs rounded shadow transition ml-4">
                 Claim Speed Bonus & Advance →
             </button>
         </div>
 
         <!-- Work Arena -->
-        <div class="grid grid-cols-12 gap-6 min-h-[360px]">
+        <div class="grid grid-cols-12 gap-6 flex-1 min-h-[480px]">
             
             <!-- Left: Primary Card Area -->
-            <div class="col-span-8 bg-gray-950 p-4 rounded border border-gray-800 flex flex-col items-center justify-between">
-                <div class="text-xs text-gray-500 uppercase tracking-widest self-start">Active Incoming Document</div>
+            <div class="col-span-8 bg-gray-950 p-6 rounded-lg border border-gray-800 flex flex-col items-center justify-between">
+                <div class="text-xs text-gray-500 uppercase tracking-widest self-start font-semibold">Active Incoming Document</div>
                 
-                <div id="active-card" class="card bg-gray-800 border-2 border-blue-500 rounded-lg p-6 w-72 text-center my-4 shadow-lg">
-                    <div id="card-id" class="text-xs text-blue-400 font-mono mb-1">DOC-101</div>
-                    <div id="card-name" class="text-lg font-bold text-white mb-2">Alpha Record</div>
-                    <div id="card-type" class="inline-block px-3 py-1 text-xs rounded bg-blue-900/50 text-blue-300 font-semibold">Category A</div>
+                <div id="active-card" class="card bg-gray-800 border-2 border-blue-500 rounded-xl p-8 w-80 text-center my-auto shadow-2xl">
+                    <div id="card-id" class="text-sm text-blue-400 font-mono mb-2 font-bold">DOC-101</div>
+                    <div id="card-name" class="text-2xl font-bold text-white mb-3">Alpha Record</div>
+                    <div id="card-type" class="inline-block px-4 py-1.5 text-xs rounded-full bg-blue-900/50 text-blue-300 font-bold tracking-wide">Category A</div>
                 </div>
 
                 <!-- Action Controls -->
-                <div class="flex gap-4 w-full justify-center">
-                    <button onclick="sortActiveCard('Category A')" class="flex-1 py-3 bg-blue-700 hover:bg-blue-600 active:bg-blue-800 rounded font-bold text-sm transition">
+                <div class="flex gap-6 w-full justify-center">
+                    <button onclick="sortActiveCard('Category A')" class="flex-1 py-4 bg-blue-700 hover:bg-blue-600 active:bg-blue-800 rounded-lg font-bold text-base transition shadow-md">
                         File to Category A
                     </button>
-                    <button onclick="sortActiveCard('Category B')" class="flex-1 py-3 bg-purple-700 hover:bg-purple-600 active:bg-purple-800 rounded font-bold text-sm transition">
+                    <button onclick="sortActiveCard('Category B')" class="flex-1 py-4 bg-purple-700 hover:bg-purple-600 active:bg-purple-800 rounded-lg font-bold text-base transition shadow-md">
                         File to Category B
                     </button>
                 </div>
             </div>
 
             <!-- Right: Outbox Tray -->
-            <div class="col-span-4 bg-gray-950 p-4 rounded border border-gray-800 flex flex-col">
-                <div class="text-xs text-gray-500 uppercase tracking-widest mb-2">Outbox Tray (Filed Files)</div>
-                <div id="outbox-list" class="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[300px]">
+            <div class="col-span-4 bg-gray-950 p-6 rounded-lg border border-gray-800 flex flex-col">
+                <div class="text-xs text-gray-500 uppercase tracking-widest mb-3 font-semibold">Outbox Tray (Filed Files)</div>
+                <div id="outbox-list" class="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[360px] max-h-[520px]">
                     <!-- Processed cards append here -->
                 </div>
             </div>
@@ -127,13 +132,29 @@
         </div>
     </div>
 
+    <!-- Early Finish Confirmation Modal -->
+    <div id="confirm-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-900 border border-red-800 p-6 rounded-lg max-w-md w-full text-center shadow-2xl">
+            <h2 class="text-xl font-bold text-red-400 mb-2">Finish Assessment Early?</h2>
+            <p class="text-xs text-gray-300 mb-6 leading-relaxed">
+                Are you sure you want to exit the assessment now? Your current score and progress across completed sections will be saved immediately.
+            </p>
+            <div class="flex gap-4">
+                <button onclick="cancelEarlyFinish()" class="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-white text-xs font-bold rounded">
+                    Cancel (Continue)
+                </button>
+                <button onclick="executeEarlyFinish()" class="flex-1 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded">
+                    Yes, Submit & Finish
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Completion Modal -->
     <div id="end-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-900 border border-gray-800 p-6 rounded-lg max-w-md w-full text-center">
             <h2 class="text-2xl font-bold text-green-400 mb-2">Assessment Complete!</h2>
-            <p class="text-sm text-gray-400 mb-4">Your detailed event log has been compiled.</p>
-            
-            <div id="save-status" class="text-yellow-400 font-bold animate-pulse text-sm mb-4">Logging event stream to Google Sheets...</div>
+            <p class="text-sm text-gray-400 mb-4">All behavioral events have been saved live to Google Sheets.</p>
             <button onclick="location.reload()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded">Restart Simulation</button>
         </div>
     </div>
@@ -142,7 +163,6 @@
 /* CONFIGURATION */
 const GOOGLE_WEB_APP_URL = "https://script.google.com/a/macros/tamu.edu/s/AKfycbybDNP2q6Gw-WpKItRRAnI1jJQvHxko_RMdeiSCfW9EkhODyTXqlWM88YrgLzp1VDkU/exec"; 
 
-// Unique ID for this participant session
 const SESSION_ID = 'SESS-' + Math.random().toString(36).substr(2, 9).toUpperCase();
 
 function toggleFullScreen() {
@@ -171,11 +191,9 @@ let cardRenderTimestamp = 0;
 let processedFiles = [];
 let currentCard = null;
 
-// EVENT AUDIT LOG QUEUE
-let eventLog = [];
-
 function recordEvent(category, eventName, detail = "", latencyMs = "") {
-    eventLog.push({
+    const payload = {
+        sessionId: SESSION_ID,
         timestamp: new Date().toISOString(),
         block: currentBlock,
         timeLeft: timeLeft,
@@ -184,7 +202,14 @@ function recordEvent(category, eventName, detail = "", latencyMs = "") {
         detail: detail,
         latencyMs: latencyMs,
         currentScore: score
-    });
+    };
+
+    fetch(GOOGLE_WEB_APP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).catch(err => console.error("Live streaming error:", err));
 }
 
 const categories = ['Category A', 'Category B'];
@@ -228,7 +253,6 @@ function startBlock(blockNum) {
         timeLeft--;
         document.getElementById('timer-display').innerText = timeLeft;
 
-        // Covert Trigger: Injected Outbox Error at 60s remaining
         if (timeLeft === 60 && processedFiles.length >= 4 && !processedFiles[3].hasBeenCorrupted) {
             injectRetroactiveError(3);
         }
@@ -247,9 +271,9 @@ function renderCard() {
     
     const cardElem = document.getElementById('card-type');
     if (currentCard.type === 'Category A') {
-        cardElem.className = "inline-block px-3 py-1 text-xs rounded bg-blue-900/50 text-blue-300 font-semibold";
+        cardElem.className = "inline-block px-4 py-1.5 text-xs rounded-full bg-blue-900/50 text-blue-300 font-bold tracking-wide";
     } else {
-        cardElem.className = "inline-block px-3 py-1 text-xs rounded bg-purple-900/50 text-purple-300 font-semibold";
+        cardElem.className = "inline-block px-4 py-1.5 text-xs rounded-full bg-purple-900/50 text-purple-300 font-bold tracking-wide";
     }
 
     cardRenderTimestamp = performance.now();
@@ -327,7 +351,7 @@ function renderOutbox() {
         const item = document.createElement('div');
         const isMismatch = file.filedAs !== file.type || file.isCorrupted;
         
-        item.className = `p-2 rounded text-xs flex justify-between items-center border ${
+        item.className = `p-2.5 rounded text-xs flex justify-between items-center border ${
             isMismatch ? 'bg-red-950/80 border-red-500 text-red-200 animate-pulse' : 'bg-gray-900 border-gray-800 text-gray-400'
         }`;
 
@@ -357,6 +381,21 @@ function advanceBlock() {
     }
 }
 
+/* EARLY FINISH CONTROLS */
+function confirmEarlyFinish() {
+    document.getElementById('confirm-modal').classList.remove('hidden');
+}
+
+function cancelEarlyFinish() {
+    document.getElementById('confirm-modal').classList.add('hidden');
+}
+
+function executeEarlyFinish() {
+    document.getElementById('confirm-modal').classList.add('hidden');
+    recordEvent("USER_ACTION", "EARLY_EXIT_CLICK", `User voluntarily finished simulation early during Block ${currentBlock}`);
+    endGame();
+}
+
 function endGame() {
     if (!gameActive) return;
     gameActive = false;
@@ -364,29 +403,6 @@ function endGame() {
 
     recordEvent("SYSTEM_EVENT", "ASSESSMENT_COMPLETE", `Final Score: ${score}, Total Files: ${totalFilesSorted}`);
     document.getElementById('end-modal').classList.remove('hidden');
-
-    const payload = {
-        sessionId: SESSION_ID,
-        events: eventLog
-    };
-
-    fetch(GOOGLE_WEB_APP_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    })
-    .then(() => {
-        const status = document.getElementById('save-status');
-        status.innerText = "Event log successfully saved to Google Sheets!";
-        status.className = "text-green-400 font-bold text-sm mb-4";
-    })
-    .catch(err => {
-        console.error(err);
-        const status = document.getElementById('save-status');
-        status.innerText = "Error saving event log to Google Sheets.";
-        status.className = "text-red-500 font-bold text-sm mb-4";
-    });
 }
 </script>
 </body>
