@@ -71,7 +71,7 @@
                     <button onclick="exitInspectionMode()" class="px-2 py-0.5 bg-black text-yellow-400 text-[10px] rounded hover:bg-gray-900 transition font-bold">Done →</button>
                 </div>
 
-                <div class="my-auto flex flex-col items-center justify-center">
+                <div id="card-center-wrapper" class="my-auto flex flex-col items-center justify-center">
                     <div id="active-card" class="card bg-gray-800 border-2 border-blue-500 rounded-xl p-8 w-80 text-center shadow-2xl relative z-0">
                         <div id="card-id" class="text-sm text-blue-400 font-mono mb-2 font-bold">DOC-101</div>
                         <div id="card-name" class="text-2xl font-bold text-white mb-2">Quarterly Audit Report</div>
@@ -80,13 +80,16 @@
                     </div>
                 </div>
 
-                <!-- Action Controls -->
+                <!-- Action Controls (Dual classification vs single Finish button vs Interactive Inspection) -->
                 <div id="action-buttons-container" class="flex gap-6 w-full justify-center">
                     <button id="btn-cat-a" onclick="handleClassificationClick('Category A')" class="flex-1 py-4 bg-blue-700 hover:bg-blue-600 active:bg-blue-800 rounded-lg font-bold text-base transition shadow-md">
                         File to Category A
                     </button>
                     <button id="btn-cat-b" onclick="handleClassificationClick('Category B')" class="flex-1 py-4 bg-purple-700 hover:bg-purple-600 active:bg-purple-800 rounded-lg font-bold text-base transition shadow-md">
                         File to Category B
+                    </button>
+                    <button id="btn-finish-section" onclick="manualAdvanceSection()" class="hidden w-full py-4 bg-green-600 hover:bg-green-500 active:bg-green-700 rounded-lg font-bold text-base text-white transition shadow-md">
+                        Finish Section →
                     </button>
                 </div>
             </div>
@@ -218,7 +221,7 @@ window.addEventListener('visibilitychange', () => { if (document.visibilityState
 window.addEventListener('beforeunload', () => { flushEventBuffer(); });
 setInterval(() => { if (gameActive && eventBuffer.length > 0) flushEventBuffer(); }, 10000);
 
-/* DETERMINISTIC FILE DECKS (Identical experience for all candidates) */
+/* DETERMINISTIC FILE DECKS */
 const STANDARD_BADGE_A = 'bg-blue-900/50 text-blue-300 border border-blue-700/50';
 const STANDARD_BADGE_B = 'bg-purple-900/50 text-purple-300 border border-purple-700/50';
 
@@ -239,25 +242,25 @@ const DETERMINISTIC_DECKS = {
         { id: 'DOC-201', name: 'System Security Audit', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
         { id: 'DOC-202', name: 'Vendor Contract', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
         { id: 'DOC-203', name: 'Expense Report (Multi-Field)', type: 'Category A', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
-        { id: 'DOC-204', name: 'Client Onboarding File', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false }, // Stroop
-        { id: 'DOC-205', name: 'Asset Management Register', type: 'Category A', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Stroop
-        { id: 'DOC-206', name: 'Procurement Order (Multi-Field)', type: 'Category B', region: 'US-West', isComplex: true, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Stroop
-        { id: 'DOC-207', name: 'Regulatory Summary', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false }, // Stroop
+        { id: 'DOC-204', name: 'Client Onboarding File', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
+        { id: 'DOC-205', name: 'Asset Management Register', type: 'Category A', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-206', name: 'Procurement Order (Multi-Field)', type: 'Category B', region: 'US-West', isComplex: true, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-207', name: 'Regulatory Summary', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
         { id: 'DOC-208', name: 'IT Infrastructure Log', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
         { id: 'DOC-209', name: 'Risk Assessment (Multi-Field)', type: 'Category A', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
-        { id: 'DOC-210', name: 'Corporate Governance Memo', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false } // Stroop
+        { id: 'DOC-210', name: 'Corporate Governance Memo', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }
     ],
     3: [
         { id: 'DOC-301', name: 'Annual Performance Review', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
-        { id: 'DOC-302', name: 'Billing Reconciliation', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: true }, // Stealth Issue
+        { id: 'DOC-302', name: 'Billing Reconciliation', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: true },
         { id: 'DOC-303', name: 'Budget Allocation (Multi-Field)', type: 'Category A', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
-        { id: 'DOC-304', name: 'Legal Disclosures', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false }, // Stroop
-        { id: 'DOC-305', name: 'Facility Inspection Form', type: 'Category A', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Stroop
-        { id: 'DOC-306', name: 'Executive Briefing (Multi-Field)', type: 'Category B', region: 'US-West', isComplex: true, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Stroop
-        { id: 'DOC-307', name: 'Quality Assurance Matrix', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: true }, // Stealth Issue
+        { id: 'DOC-304', name: 'Legal Disclosures', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
+        { id: 'DOC-305', name: 'Facility Inspection Form', type: 'Category A', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-306', name: 'Executive Briefing (Multi-Field)', type: 'Category B', region: 'US-West', isComplex: true, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-307', name: 'Quality Assurance Matrix', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: true },
         { id: 'DOC-308', name: 'Data Protection Impact Assessment', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
         { id: 'DOC-309', name: 'Strategic Roadmap (Multi-Field)', type: 'Category A', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
-        { id: 'DOC-310', name: 'Final Operational Audit', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false } // Stroop
+        { id: 'DOC-310', name: 'Final Operational Audit', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }
     ]
 };
 
@@ -283,7 +286,7 @@ function renderInstructionModal(sectionNum) {
             </div>
             <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
                 <div class="text-amber-400 font-bold text-sm">🔍</div>
-                <div><span class="font-bold text-white block">2. Quality Control Audits & Outbox Inspection</span>The Quality Control System periodically audits filed work by attaching a <span class="text-amber-400 font-bold">⚠️ QC FLAG</span> to a folder in your Outbox. You can click <span class="text-cyan-300 font-bold">🔍 Inspect</span> on any folder in your Outbox at any time to review and re-classify past filings.</div>
+                <div><span class="font-bold text-white block">2. Quality Control Audits & Outbox Inspection</span>The Quality Control System periodically audits filed work by attaching a <span class="text-amber-400 font-bold">⚠️ QC FLAG</span> to a folder in your Outbox. You can click <span class="text-cyan-300 font-bold">🔍 Inspect</span> or click directly on any file folder in your Outbox Tray at any time to review and re-classify past filings.</div>
             </div>
             <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
                 <div class="text-green-400 font-bold text-sm">⚖️</div>
@@ -370,7 +373,29 @@ function startBlock(blockNum) {
 }
 
 function renderCard() {
-    if (isInspecting || !currentCard) return;
+    if (isInspecting) return;
+
+    const catA = document.getElementById('btn-cat-a');
+    const catB = document.getElementById('btn-cat-b');
+    const finishBtn = document.getElementById('btn-finish-section');
+    const cardCenter = document.getElementById('card-center-wrapper');
+
+    if (itemsProcessedInBlock >= sectionQuota) {
+        // Quota completed before time expired -> Show single Finish Section button
+        cardCenter.classList.add('hidden');
+        catA.classList.add('hidden');
+        catB.classList.add('hidden');
+        finishBtn.classList.remove('hidden');
+        return;
+    }
+
+    // Normal active card state
+    cardCenter.classList.remove('hidden');
+    catA.classList.remove('hidden');
+    catB.classList.remove('hidden');
+    finishBtn.classList.add('hidden');
+
+    if (!currentCard) return;
 
     document.getElementById('card-id').innerText = currentCard.id;
     document.getElementById('card-name').innerText = currentCard.name;
@@ -383,8 +408,8 @@ function renderCard() {
     cardElem.innerText = currentCard.type;
     cardElem.className = `inline-block px-4 py-1.5 text-xs rounded-full font-bold tracking-wide ${currentCard.badgeStyle}`;
 
-    document.getElementById('btn-cat-a').innerText = "File to Category A";
-    document.getElementById('btn-cat-b').innerText = "File to Category B";
+    catA.innerText = "File to Category A";
+    catB.innerText = "File to Category B";
 
     cardRenderTimestamp = performance.now();
     recordEvent("SYSTEM_EVENT", "CARD_RENDERED", `Card ${currentCard.id} (Type: ${currentCard.type}, Complex: ${currentCard.isComplex}) displayed`);
@@ -419,7 +444,6 @@ function sortActiveCard(selectedCategory) {
     
     recordEvent("USER_ACTION", "SORT_CLICK", `Filed ${currentCard.id} to ${selectedCategory} (Correct: ${isCorrect}, Score Change: ${isCorrect ? '+10' : '-5'})`, latency);
 
-    // Store filed card
     processedFiles.push({
         id: currentCard.id,
         name: currentCard.name,
@@ -437,9 +461,9 @@ function sortActiveCard(selectedCategory) {
 
     // LAGGED COMPLIANCE FLAG PROTOCOL
     if (currentBlock === 1 && itemsProcessedInBlock === 6) {
-        // Section 1: File #6 filed -> Flag triggers for File #7
-        const targetDoc = 'DOC-107';
-        triggerComplianceFlag(targetDoc, "Section 1 File #6 Notification (Flagged File #7)");
+        // Section 1: File #6 submitted -> Tag DOC-105 (already in outbox)
+        const targetDoc = 'DOC-105';
+        triggerComplianceFlag(targetDoc, "Section 1 File #6 Notification (Flagged File #5)");
     } 
     else if (currentBlock === 2 && itemsProcessedInBlock === 6) {
         const targetDoc = 'DOC-205';
@@ -458,9 +482,10 @@ function sortActiveCard(selectedCategory) {
     } else {
         recordEvent("SYSTEM_EVENT", "SECTION_QUOTA_REACHED", `Section ${currentBlock} quota completed.`);
         
-        // AUTO-ADVANCE SECTION 1 UNTIMED PRACTICE; TIMED SECTIONS REQUIRE MANUAL CLICK OR TIMER EXPIRY
         if (currentBlock === 1) {
             advanceBlock();
+        } else {
+            renderCard(); // Renders the single Finish Section button state
         }
     }
 }
@@ -498,10 +523,19 @@ function auditOutboxItem(docId) {
     isInspecting = true;
     const arena = document.getElementById('card-arena-container');
     const header = document.getElementById('inspection-mode-header');
+    const cardCenter = document.getElementById('card-center-wrapper');
     const cardBox = document.getElementById('active-card');
+    const catA = document.getElementById('btn-cat-a');
+    const catB = document.getElementById('btn-cat-b');
+    const finishBtn = document.getElementById('btn-finish-section');
 
     header.classList.remove('hidden');
     arena.classList.add('bg-yellow-950/20', 'border-yellow-500');
+
+    cardCenter.classList.remove('hidden');
+    catA.classList.remove('hidden');
+    catB.classList.remove('hidden');
+    finishBtn.classList.add('hidden');
 
     cardBox.className = "card bg-gray-900 border-4 border-yellow-500 rounded-xl p-8 w-80 text-center my-auto shadow-2xl relative z-0 animate-pulse-slow";
     
@@ -517,13 +551,12 @@ function auditOutboxItem(docId) {
     cardElem.innerText = file.type;
     cardElem.className = `inline-block px-4 py-1.5 text-xs rounded-full font-bold tracking-wide ${file.badgeStyle}`;
 
-    // CONTEXTUAL BUTTON LABELS ACCORDING TO FILED STATE
     if (file.filedAs === 'Category A') {
-        document.getElementById('btn-cat-a').innerText = "Keep in Category A";
-        document.getElementById('btn-cat-b').innerText = "Switch to Category B";
+        catA.innerText = "Keep in Category A";
+        catB.innerText = "Switch to Category B";
     } else {
-        document.getElementById('btn-cat-a').innerText = "Switch to Category A";
-        document.getElementById('btn-cat-b').innerText = "Keep in Category B";
+        catA.innerText = "Switch to Category A";
+        catB.innerText = "Keep in Category B";
     }
 
     renderOutbox();
@@ -573,16 +606,12 @@ function exitInspectionModeUI() {
 
     const defaultBorder = currentCard ? currentCard.cardBorder : 'border-blue-500';
     cardBox.className = `card bg-gray-800 border-2 ${defaultBorder} rounded-xl p-8 w-80 text-center my-auto shadow-2xl relative z-0`;
-    
-    document.getElementById('btn-cat-a').innerText = "File to Category A";
-    document.getElementById('btn-cat-b').innerText = "File to Category B";
 }
 
 function renderOutbox() {
     const list = document.getElementById('outbox-list');
     list.innerHTML = '';
 
-    // RENDER OUTBOX ITEMS IN ASCENDING CHRONOLOGICAL ORDER (1, 2, 3...)
     processedFiles.forEach((file) => {
         const item = document.createElement('div');
         const isFlagged = (activeComplianceFlag && file.id === flaggedDocId);
@@ -604,7 +633,7 @@ function renderOutbox() {
 }
 
 function manualAdvanceSection() {
-    recordEvent("USER_ACTION", "MANUAL_NEXT_SECTION_CLICK", `User clicked Next during Block ${currentBlock}`);
+    recordEvent("USER_ACTION", "MANUAL_NEXT_SECTION_CLICK", `User clicked Next/Finish during Block ${currentBlock}`);
     advanceBlock();
 }
 
