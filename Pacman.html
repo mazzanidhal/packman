@@ -141,12 +141,10 @@
         </div>
     </div>
 
-    <!-- End Modal -->
-    <div id="end-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-        <div class="bg-gray-900 border border-gray-800 p-6 rounded-lg max-w-md w-full text-center">
-            <h2 class="text-2xl font-bold text-green-400 mb-2">Assessment Complete!</h2>
-            <p class="text-sm text-gray-400 mb-4">Your behavioral data stream has been transmitted.</p>
-            <button onclick="location.reload()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded">Restart Simulation</button>
+    <!-- End Modal (Clean: Contains ONLY Assessment Complete statement) -->
+    <div id="end-modal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-900 border border-gray-800 p-10 rounded-lg max-w-md w-full text-center shadow-2xl">
+            <h2 class="text-3xl font-bold text-green-400">Assessment Complete!</h2>
         </div>
     </div>
 
@@ -165,7 +163,7 @@ function toggleFullScreen() {
 }
 
 /* STATE VARIABLES */
-let currentBlock = 0; // 0 = Welcome Screen, 1 = Sec 1, 2 = Sec 2, 3 = Sec 3
+let currentBlock = 0; // 0 = Welcome Screen, 1 = Sec 1, 1.5 = Practice Feedback, 2 = Sec 2, 3 = Sec 3
 const TOTAL_BLOCKS = 3;
 const BLOCK_DURATION = 45; 
 
@@ -254,36 +252,36 @@ const DETERMINISTIC_DECKS = {
         { id: 'DOC-201', name: 'System Security Audit', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
         { id: 'DOC-202', name: 'Vendor Contract', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
         { id: 'DOC-203', name: 'Expense Report (Multi-Field)', type: 'Category A', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
-        { id: 'DOC-204', name: 'Client Onboarding File', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Doublet A-A
-        { id: 'DOC-205', name: 'Asset Management Register', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false }, // Tagged on #6
-        { id: 'DOC-206', name: 'Procurement Order (Multi-Field)', type: 'Category B', region: 'US-West', isComplex: true, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Doublet B-B
+        { id: 'DOC-204', name: 'Client Onboarding File', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-205', name: 'Asset Management Register', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
+        { id: 'DOC-206', name: 'Procurement Order (Multi-Field)', type: 'Category B', region: 'US-West', isComplex: true, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
         { id: 'DOC-207', name: 'Regulatory Summary', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
         { id: 'DOC-208', name: 'IT Infrastructure Log', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
         { id: 'DOC-209', name: 'Risk Assessment (Multi-Field)', type: 'Category A', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
-        { id: 'DOC-210', name: 'Corporate Governance Memo', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Doublet A-A, Tagged on #12
-        { id: 'DOC-211', name: 'Facility Maintenance Log', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Full Stroop
+        { id: 'DOC-210', name: 'Corporate Governance Memo', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-211', name: 'Facility Maintenance Log', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
         { id: 'DOC-212', name: 'Tax Compliance Ledger', type: 'Category A', region: 'US-West', isComplex: true, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
         { id: 'DOC-213', name: 'Vendor Clearance File', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
-        { id: 'DOC-214', name: 'Employee Health Record', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false }, // Doublet B-B
+        { id: 'DOC-214', name: 'Employee Health Record', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
         { id: 'DOC-215', name: 'Final Operations Closing', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }
     ],
     // Section 3: Harder Unmonitored Ops (15 Files / 45s Clock)
     3: [
         { id: 'DOC-301', name: 'Annual Performance Review', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
         { id: 'DOC-302', name: 'Billing Reconciliation', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
-        { id: 'DOC-303', name: 'Budget Allocation (Multi-Field)', type: 'Category B', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false }, // Doublet B-B
-        { id: 'DOC-304', name: 'Legal Disclosures', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Triplet B-B-B
-        { id: 'DOC-305', name: 'Facility Inspection Form', type: 'Category A', region: 'EU-Central', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: true }, // Stealth #1
-        { id: 'DOC-306', name: 'Executive Briefing (Multi-Field)', type: 'Category A', region: 'US-West', isComplex: true, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Doublet A-A
-        { id: 'DOC-307', name: 'Quality Assurance Matrix', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Full Stroop #1
+        { id: 'DOC-303', name: 'Budget Allocation (Multi-Field)', type: 'Category B', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
+        { id: 'DOC-304', name: 'Legal Disclosures', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-305', name: 'Facility Inspection Form', type: 'Category A', region: 'EU-Central', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: true },
+        { id: 'DOC-306', name: 'Executive Briefing (Multi-Field)', type: 'Category A', region: 'US-West', isComplex: true, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-307', name: 'Quality Assurance Matrix', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
         { id: 'DOC-308', name: 'Data Protection Impact Assessment', type: 'Category A', region: 'EU-Central', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
         { id: 'DOC-309', name: 'Strategic Roadmap (Multi-Field)', type: 'Category B', region: 'US-West', isComplex: true, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
-        { id: 'DOC-310', name: 'Final Operational Audit', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Doublet B-B + Full Stroop #2
-        { id: 'DOC-311', name: 'Corporate Restructuring File', type: 'Category A', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: true }, // Stealth #2
-        { id: 'DOC-312', name: 'Cross-Border Tax Register', type: 'Category A', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Doublet A-A
-        { id: 'DOC-313', name: 'Global Compliance Summary', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Full Stroop #3
+        { id: 'DOC-310', name: 'Final Operational Audit', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-311', name: 'Corporate Restructuring File', type: 'Category A', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: true },
+        { id: 'DOC-312', name: 'Cross-Border Tax Register', type: 'Category A', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-313', name: 'Global Compliance Summary', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
         { id: 'DOC-314', name: 'Infrastructure Security Policy', type: 'Category A', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
-        { id: 'DOC-315', name: 'System End-of-Day Audit', type: 'Category B', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false } // Full Stroop #4
+        { id: 'DOC-315', name: 'System End-of-Day Audit', type: 'Category B', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }
     ]
 };
 
@@ -292,7 +290,6 @@ function getCardForBlock(blockNum, fileIndex) {
     return deck[fileIndex - 1];
 }
 
-// INSTRUCTION & WELCOME MODAL RENDERER
 function renderWelcomePage() {
     currentBlock = 0;
     const heading = document.getElementById('modal-heading');
@@ -308,6 +305,27 @@ function renderWelcomePage() {
             </button>
         </div>
         <p class="font-semibold text-gray-200">This task will last 5 minutes and cannot be paused. If you are ready to start, click on the button below.</p>
+    `;
+    btn.innerText = "Next";
+    document.getElementById('instructions-modal').classList.remove('hidden');
+}
+
+function renderPracticeFeedbackPage() {
+    currentBlock = 1.5;
+    const heading = document.getElementById('modal-heading');
+    const body = document.getElementById('modal-body-content');
+    const btn = document.getElementById('modal-start-btn');
+
+    heading.innerText = "Section 1 Complete!";
+    body.innerHTML = `
+        <div class="p-6 bg-gray-950 border border-gray-800 rounded-lg text-center my-2">
+            <p class="text-xl font-bold text-green-400 mb-1">
+                Great, you have scored <span class="text-white">${score}</span> / 100 points!
+            </p>
+            <p class="text-xs text-gray-400 mt-2">
+                Click Next to view instructions for Section 2.
+            </p>
+        </div>
     `;
     btn.innerText = "Next";
     document.getElementById('instructions-modal').classList.remove('hidden');
@@ -369,11 +387,12 @@ function renderInstructionModal(sectionNum) {
 
 function handleModalNextClick() {
     if (currentBlock === 0) {
-        // From Welcome Page -> Advance to Section 1 Instructions
         currentBlock = 1;
         renderInstructionModal(1);
+    } else if (currentBlock === 1.5) {
+        currentBlock = 2;
+        renderInstructionModal(2);
     } else {
-        // Start Current Active Section
         document.getElementById('instructions-modal').classList.add('hidden');
         gameActive = true;
         startBlock(currentBlock);
@@ -393,7 +412,6 @@ function startBlock(blockNum) {
 
     if (timerInterval) clearInterval(timerInterval);
 
-    // Section 1 = 10 files; Sections 2 & 3 = 15 files
     sectionQuota = (currentBlock === 1) ? 10 : 15;
 
     const scoreContainer = document.getElementById('score-container');
@@ -698,7 +716,11 @@ function manualAdvanceSection() {
 function advanceBlock() {
     if (timerInterval) clearInterval(timerInterval);
 
-    if (currentBlock < TOTAL_BLOCKS) {
+    if (currentBlock === 1) {
+        // Section 1 complete -> Show Practice Performance Feedback Screen first
+        processedFiles = [];
+        renderPracticeFeedbackPage();
+    } else if (currentBlock < TOTAL_BLOCKS) {
         currentBlock++;
         processedFiles = [];
         renderInstructionModal(currentBlock);
