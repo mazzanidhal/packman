@@ -35,8 +35,8 @@
 
         <!-- Right: Control Actions -->
         <div class="flex items-center gap-3">
-            <button onclick="manualAdvanceSection()" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 border border-blue-400 text-white rounded text-xs font-bold transition shadow">
-                ⏩ Next Section
+            <button onclick="manualAdvanceSection()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 border border-blue-400 text-white rounded text-xs font-bold transition shadow">
+                Next
             </button>
             <button onclick="confirmEarlyFinish()" class="px-3.5 py-2 bg-red-900/80 hover:bg-red-800 border border-red-600 text-red-200 rounded text-xs transition font-semibold">
                 ⏹ Stop Assessment
@@ -71,15 +71,13 @@
                     <button onclick="exitInspectionMode()" class="px-2 py-0.5 bg-black text-yellow-400 text-[10px] rounded hover:bg-gray-900 transition font-bold">Done →</button>
                 </div>
 
-                <div class="text-xs text-gray-500 uppercase tracking-widest self-start font-semibold mt-2">
-                    <span id="card-area-label">Active Incoming Document</span>
-                </div>
-                
-                <div id="active-card" class="card bg-gray-800 border-2 border-blue-500 rounded-xl p-8 w-80 text-center my-auto shadow-2xl relative z-0">
-                    <div id="card-id" class="text-sm text-blue-400 font-mono mb-2 font-bold">DOC-101</div>
-                    <div id="card-name" class="text-2xl font-bold text-white mb-2">Quarterly Audit Report</div>
-                    <div id="card-rule-detail" class="text-xs text-gray-400 mb-3 font-mono">Region: US-East</div>
-                    <div id="card-type" class="inline-block px-4 py-1.5 text-xs rounded-full bg-blue-900/50 text-blue-300 font-bold tracking-wide">Category A</div>
+                <div class="my-auto flex flex-col items-center justify-center">
+                    <div id="active-card" class="card bg-gray-800 border-2 border-blue-500 rounded-xl p-8 w-80 text-center shadow-2xl relative z-0">
+                        <div id="card-id" class="text-sm text-blue-400 font-mono mb-2 font-bold">DOC-101</div>
+                        <div id="card-name" class="text-2xl font-bold text-white mb-2">Quarterly Audit Report</div>
+                        <div id="card-rule-detail" class="text-xs text-gray-400 mb-3 font-mono">Region: US-East</div>
+                        <div id="card-type" class="inline-block px-4 py-1.5 text-xs rounded-full bg-blue-900/50 text-blue-300 font-bold tracking-wide">Category A</div>
+                    </div>
                 </div>
 
                 <!-- Action Controls -->
@@ -97,7 +95,7 @@
             <div class="col-span-4 bg-gray-950 p-6 rounded-lg border border-gray-800 flex flex-col">
                 <div class="text-xs text-gray-500 uppercase tracking-widest mb-3 font-semibold">Outbox Tray (Filed Files)</div>
                 <div id="outbox-list" class="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[320px] max-h-[460px]">
-                    <!-- Processed cards append here -->
+                    <!-- Processed cards append here in ascending order -->
                 </div>
             </div>
         </div>
@@ -107,11 +105,11 @@
     <div id="instructions-modal" class="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-900 border border-gray-800 p-8 rounded-lg max-w-xl w-full relative shadow-2xl">
             <h2 id="modal-heading" class="text-2xl font-bold text-blue-400 mb-2 border-b border-gray-800 pb-2">
-                Section 1 Instructions: Practice & Onboarding
+                Section 1 (Practice)
             </h2>
             <div id="modal-body-content" class="space-y-3 my-4 text-xs text-gray-300"></div>
             <button id="modal-start-btn" onclick="startCurrentSection()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm rounded shadow-lg transition">
-                Begin Section 1 (Practice) →
+                Next
             </button>
         </div>
     </div>
@@ -220,52 +218,52 @@ window.addEventListener('visibilitychange', () => { if (document.visibilityState
 window.addEventListener('beforeunload', () => { flushEventBuffer(); });
 setInterval(() => { if (gameActive && eventBuffer.length > 0) flushEventBuffer(); }, 10000);
 
-const categories = ['Category A', 'Category B'];
-const regions = ['US-East', 'US-West', 'EU-Central'];
-const documentTitles = ['Quarterly Audit Report', 'Employee Record', 'Financial Ledger', 'Compliance Assessment', 'Vendor Invoice', 'Operations Summary'];
+/* DETERMINISTIC FILE DECKS (Identical experience for all candidates) */
+const STANDARD_BADGE_A = 'bg-blue-900/50 text-blue-300 border border-blue-700/50';
+const STANDARD_BADGE_B = 'bg-purple-900/50 text-purple-300 border border-purple-700/50';
 
-const congruentStyles = {
-    'Category A': { cardBorder: 'border-blue-500', badgeStyle: 'bg-blue-900/50 text-blue-300 border border-blue-700/50' },
-    'Category B': { cardBorder: 'border-purple-500', badgeStyle: 'bg-purple-900/50 text-purple-300 border border-purple-700/50' }
+const DETERMINISTIC_DECKS = {
+    1: [
+        { id: 'DOC-101', name: 'Quarterly Audit Report', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-102', name: 'Employee Record', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
+        { id: 'DOC-103', name: 'Financial Ledger (Multi-Field)', type: 'Category A', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-104', name: 'Compliance Assessment', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
+        { id: 'DOC-105', name: 'Vendor Invoice', type: 'Category A', region: 'EU-Central', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-106', name: 'Operations Summary (Multi-Field)', type: 'Category B', region: 'US-West', isComplex: true, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
+        { id: 'DOC-107', name: 'Tax Filing Sheet', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-108', name: 'Payroll Register', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
+        { id: 'DOC-109', name: 'Logistics Manifest (Multi-Field)', type: 'Category A', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-110', name: 'Security Protocol Log', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false }
+    ],
+    2: [
+        { id: 'DOC-201', name: 'System Security Audit', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-202', name: 'Vendor Contract', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
+        { id: 'DOC-203', name: 'Expense Report (Multi-Field)', type: 'Category A', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-204', name: 'Client Onboarding File', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false }, // Stroop
+        { id: 'DOC-205', name: 'Asset Management Register', type: 'Category A', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Stroop
+        { id: 'DOC-206', name: 'Procurement Order (Multi-Field)', type: 'Category B', region: 'US-West', isComplex: true, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Stroop
+        { id: 'DOC-207', name: 'Regulatory Summary', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false }, // Stroop
+        { id: 'DOC-208', name: 'IT Infrastructure Log', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
+        { id: 'DOC-209', name: 'Risk Assessment (Multi-Field)', type: 'Category A', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-210', name: 'Corporate Governance Memo', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false } // Stroop
+    ],
+    3: [
+        { id: 'DOC-301', name: 'Annual Performance Review', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-302', name: 'Billing Reconciliation', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: true }, // Stealth Issue
+        { id: 'DOC-303', name: 'Budget Allocation (Multi-Field)', type: 'Category A', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-304', name: 'Legal Disclosures', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false }, // Stroop
+        { id: 'DOC-305', name: 'Facility Inspection Form', type: 'Category A', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Stroop
+        { id: 'DOC-306', name: 'Executive Briefing (Multi-Field)', type: 'Category B', region: 'US-West', isComplex: true, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false }, // Stroop
+        { id: 'DOC-307', name: 'Quality Assurance Matrix', type: 'Category A', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: true }, // Stealth Issue
+        { id: 'DOC-308', name: 'Data Protection Impact Assessment', type: 'Category B', region: 'EU-Central', isComplex: false, cardBorder: 'border-purple-500', badgeStyle: STANDARD_BADGE_B, hasStealthIssue: false },
+        { id: 'DOC-309', name: 'Strategic Roadmap (Multi-Field)', type: 'Category A', region: 'US-West', isComplex: true, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false },
+        { id: 'DOC-310', name: 'Final Operational Audit', type: 'Category B', region: 'US-East', isComplex: false, cardBorder: 'border-blue-500', badgeStyle: STANDARD_BADGE_A, hasStealthIssue: false } // Stroop
+    ]
 };
 
-const badgeStyles = ['bg-blue-900/50 text-blue-300 border border-blue-700/50', 'bg-purple-900/50 text-purple-300 border border-purple-700/50'];
-const borderStyles = ['border-blue-500', 'border-purple-500'];
-
-function generateCard(fileIndexInBlock) {
-    const isComplex = fileIndexInBlock % 3 === 0;
-    const targetType = categories[Math.floor(Math.random() * categories.length)];
-    const region = regions[Math.floor(Math.random() * regions.length)];
-    const baseTitle = documentTitles[Math.floor(Math.random() * documentTitles.length)];
-    
-    let selectedCardBorder;
-    let selectedBadgeStyle;
-    let hasStealthIssue = false;
-
-    // SECTION 1: STRICT ZERO STROOP (100% CONGRUENCY FOR ALL 10 FILES)
-    if (currentBlock === 1 || fileIndexInBlock <= 3) {
-        selectedCardBorder = congruentStyles[targetType].cardBorder;
-        selectedBadgeStyle = congruentStyles[targetType].badgeStyle;
-    } else {
-        // SECTION 2/3 (Files 4-10): STROOP INTERFERENCE ACTIVATED
-        selectedCardBorder = borderStyles[Math.floor(Math.random() * borderStyles.length)];
-        selectedBadgeStyle = badgeStyles[Math.floor(Math.random() * badgeStyles.length)];
-    }
-
-    if (currentBlock === 3 && (fileIndexInBlock === 2 || fileIndexInBlock === 7)) {
-        hasStealthIssue = true;
-    }
-
-    return {
-        id: `DOC-${currentBlock}0${fileIndexInBlock}`,
-        name: isComplex ? `${baseTitle} (Multi-Field)` : baseTitle,
-        type: targetType,
-        region: region,
-        isComplex: isComplex,
-        cardBorder: selectedCardBorder,
-        badgeStyle: selectedBadgeStyle,
-        hasStealthIssue: hasStealthIssue
-    };
+function getCardForBlock(blockNum, fileIndex) {
+    const deck = DETERMINISTIC_DECKS[blockNum];
+    return deck[fileIndex - 1];
 }
 
 // INSTRUCTION MODAL RENDERER
@@ -274,8 +272,10 @@ function renderInstructionModal(sectionNum) {
     const body = document.getElementById('modal-body-content');
     const btn = document.getElementById('modal-start-btn');
 
+    btn.innerText = "Next";
+
     if (sectionNum === 1) {
-        heading.innerText = "Section 1 Instructions: Practice & Onboarding";
+        heading.innerText = "Section 1 (Practice)";
         body.innerHTML = `
             <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
                 <div class="text-blue-400 font-bold text-sm">📁</div>
@@ -294,9 +294,8 @@ function renderInstructionModal(sectionNum) {
                 <div><span class="font-bold text-white block">4. Practice Section (Untimed)</span>Section 1 is an untimed practice round with <span class="text-white font-bold">10 files total</span> to help you get familiar with filing documents and managing your outbox.</div>
             </div>
         `;
-        btn.innerText = "Begin Section 1 (Practice) →";
     } else if (sectionNum === 2) {
-        heading.innerText = "Section 2 Instructions: Monitored Quality Audit";
+        heading.innerText = "Section 2";
         body.innerHTML = `
             <div class="p-3 bg-blue-950/80 rounded border border-blue-700 flex items-start gap-3">
                 <div class="text-cyan-400 font-bold text-sm">⏱️</div>
@@ -306,9 +305,8 @@ function renderInstructionModal(sectionNum) {
                 </div>
             </div>
         `;
-        btn.innerText = "Begin Section 2 (Monitored Audit) →";
     } else if (sectionNum === 3) {
-        heading.innerText = "Section 3 Instructions: Unmonitored Quality Operations";
+        heading.innerText = "Section 3";
         body.innerHTML = `
             <div class="p-3 bg-yellow-950/80 rounded border border-yellow-700 flex items-start gap-3">
                 <div class="text-yellow-400 font-bold text-sm">⚡</div>
@@ -318,7 +316,6 @@ function renderInstructionModal(sectionNum) {
                 </div>
             </div>
         `;
-        btn.innerText = "Begin Section 3 (Unmonitored Ops) →";
     }
 
     document.getElementById('instructions-modal').classList.remove('hidden');
@@ -343,7 +340,7 @@ function startBlock(blockNum) {
 
     if (timerInterval) clearInterval(timerInterval);
 
-    sectionQuota = 10; // All sections have 10 files
+    sectionQuota = 10;
 
     if (currentBlock === 1) {
         document.getElementById('timer-display').innerText = "Untimed";
@@ -367,7 +364,7 @@ function startBlock(blockNum) {
     
     recordEvent("SYSTEM_EVENT", "BLOCK_STARTED", `Section ${currentBlock} initiated`);
 
-    currentCard = generateCard(1);
+    currentCard = getCardForBlock(currentBlock, 1);
     renderCard();
     renderOutbox();
 }
@@ -422,7 +419,8 @@ function sortActiveCard(selectedCategory) {
     
     recordEvent("USER_ACTION", "SORT_CLICK", `Filed ${currentCard.id} to ${selectedCategory} (Correct: ${isCorrect}, Score Change: ${isCorrect ? '+10' : '-5'})`, latency);
 
-    processedFiles.unshift({
+    // Store filed card
+    processedFiles.push({
         id: currentCard.id,
         name: currentCard.name,
         type: currentCard.type,
@@ -438,27 +436,32 @@ function sortActiveCard(selectedCategory) {
     document.getElementById('score-display').innerText = score;
 
     // LAGGED COMPLIANCE FLAG PROTOCOL
-    // Section 1: File #6 filed -> Flag triggers for File #7
     if (currentBlock === 1 && itemsProcessedInBlock === 6) {
-        const targetDoc = processedFiles[0].id;
+        // Section 1: File #6 filed -> Flag triggers for File #7
+        const targetDoc = 'DOC-107';
         triggerComplianceFlag(targetDoc, "Section 1 File #6 Notification (Flagged File #7)");
     } 
     else if (currentBlock === 2 && itemsProcessedInBlock === 6) {
-        const targetDoc = processedFiles[1] ? processedFiles[1].id : processedFiles[0].id;
+        const targetDoc = 'DOC-205';
         triggerComplianceFlag(targetDoc, "Section 2 File #6 Notification (Flagged File #5)");
     }
     else if (currentBlock === 2 && itemsProcessedInBlock === 10) {
-        const targetDoc = processedFiles[1] ? processedFiles[1].id : processedFiles[0].id;
+        const targetDoc = 'DOC-209';
         triggerComplianceFlag(targetDoc, "Section 2 File #10 Notification (Flagged File #9)");
     }
 
     renderOutbox();
 
     if (itemsProcessedInBlock < sectionQuota) {
-        currentCard = generateCard(itemsProcessedInBlock + 1);
+        currentCard = getCardForBlock(currentBlock, itemsProcessedInBlock + 1);
         renderCard();
     } else {
-        recordEvent("SYSTEM_EVENT", "SECTION_QUOTA_REACHED", `Section ${currentBlock} quota completed. Awaiting user navigation or timer expiry.`);
+        recordEvent("SYSTEM_EVENT", "SECTION_QUOTA_REACHED", `Section ${currentBlock} quota completed.`);
+        
+        // AUTO-ADVANCE SECTION 1 UNTIMED PRACTICE; TIMED SECTIONS REQUIRE MANUAL CLICK OR TIMER EXPIRY
+        if (currentBlock === 1) {
+            advanceBlock();
+        }
     }
 }
 
@@ -579,6 +582,7 @@ function renderOutbox() {
     const list = document.getElementById('outbox-list');
     list.innerHTML = '';
 
+    // RENDER OUTBOX ITEMS IN ASCENDING CHRONOLOGICAL ORDER (1, 2, 3...)
     processedFiles.forEach((file) => {
         const item = document.createElement('div');
         const isFlagged = (activeComplianceFlag && file.id === flaggedDocId);
@@ -600,7 +604,7 @@ function renderOutbox() {
 }
 
 function manualAdvanceSection() {
-    recordEvent("USER_ACTION", "MANUAL_NEXT_SECTION_CLICK", `User clicked Next Section during Block ${currentBlock}`);
+    recordEvent("USER_ACTION", "MANUAL_NEXT_SECTION_CLICK", `User clicked Next during Block ${currentBlock}`);
     advanceBlock();
 }
 
