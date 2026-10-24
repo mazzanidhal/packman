@@ -12,10 +12,16 @@
         .hidden { display: none !important; }
     </style>
 </head>
-<body>
+<body id="game-body">
 
-    <div class="mb-4 text-center">
-        <h1 class="text-3xl font-bold text-yellow-400 mb-2">Data-Logging Pac-Man</h1>
+    <div class="mb-4 text-center flex flex-col items-center">
+        <div class="flex items-center gap-4 mb-2">
+            <h1 class="text-3xl font-bold text-yellow-400">Data-Logging Pac-Man</h1>
+            <!-- Fullscreen Toggle Button -->
+            <button onclick="toggleFullScreen()" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 border border-gray-500 rounded text-xs text-white font-semibold transition">
+                ⛶ Fullscreen
+            </button>
+        </div>
         <div class="flex gap-6 text-lg">
             <div>Score: <span id="scoreDisplay" class="font-bold">0</span></div>
             <div>Time: <span id="timeDisplay" class="font-bold">0</span>s</div>
@@ -23,7 +29,6 @@
         <p class="text-sm text-gray-400 mt-2">Use Arrow Keys to move. Eat the big dots to eat ghosts!</p>
     </div>
 
-    <!-- THIS LINE WAS FIXED TO USE 70vh AND CENTER IT -->
     <div style="position: relative; width: 100%; max-width: 70vh; aspect-ratio: 1/1; margin: 0 auto;">
         <canvas id="gameCanvas" width="400" height="400"></canvas>
         
@@ -42,6 +47,19 @@
     </div>
 
 <script>
+/* Fullscreen Toggle Functionality */
+function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.error(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+}
+
 /* ==========================================
    IMPORTANT: GOOGLE SHEETS SETUP
    ========================================== */
