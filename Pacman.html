@@ -15,44 +15,41 @@
 </head>
 <body class="select-none w-full min-h-screen p-4 flex flex-col items-center justify-start">
 
-    <!-- Header Bar -->
-    <div class="w-full max-w-6xl px-6 py-3 flex justify-between items-center bg-gray-900 border border-gray-800 rounded-t-lg mb-2 shadow-lg">
-        <div class="flex items-center gap-3">
-            <div>
-                <h1 class="text-2xl font-bold text-blue-400">Virtual Office: Document Processing Audit</h1>
-                <p class="text-xs text-gray-400">Section <span id="block-display" class="font-bold text-white">1 of 3</span> — <span id="section-title" class="text-yellow-400 font-semibold">Practice Section</span></p>
+    <!-- Consolidated Header Bar -->
+    <div class="w-full max-w-6xl px-6 py-3 flex justify-between items-center bg-gray-900 border border-gray-800 rounded-lg mb-3 shadow-lg">
+        <!-- Left: Status Readouts -->
+        <div class="flex items-center gap-6">
+            <div class="text-xs text-gray-300">
+                <span class="text-gray-500 uppercase tracking-widest font-semibold block text-[10px]">Section Progress</span>
+                Section <span id="block-display" class="font-bold text-yellow-400">1 of 3</span> (<span id="quota-display" class="font-bold text-white">0 / 10</span>)
             </div>
-            <span class="px-2 py-0.5 bg-blue-950 border border-blue-700 text-blue-300 font-mono text-[10px] rounded font-bold">
-                v3.9.0-BugFixAndCopy
-            </span>
+            <div class="text-xs text-gray-300 border-l border-gray-800 pl-6">
+                <span class="text-gray-500 uppercase tracking-widest font-semibold block text-[10px]">Time Remaining</span>
+                <span id="timer-display" class="font-bold text-cyan-400 text-sm">Untimed</span>
+            </div>
+            <div class="text-xs text-gray-300 border-l border-gray-800 pl-6">
+                <span class="text-gray-500 uppercase tracking-widest font-semibold block text-[10px]">Total Score</span>
+                <span id="score-display" class="font-bold text-green-400 text-sm">0</span>
+            </div>
         </div>
+
+        <!-- Right: Control Actions -->
         <div class="flex items-center gap-3">
-            <button onclick="confirmEarlyFinish()" class="px-4 py-2 bg-red-900/80 hover:bg-red-800 border border-red-600 text-red-200 rounded text-xs transition font-semibold">
-                ⏹ Finish Assessment
+            <button onclick="manualAdvanceSection()" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 border border-blue-400 text-white rounded text-xs font-bold transition shadow">
+                ⏩ Next Section
             </button>
-            <button onclick="toggleFullScreen()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded text-xs text-white transition font-semibold">
+            <button onclick="confirmEarlyFinish()" class="px-3.5 py-2 bg-red-900/80 hover:bg-red-800 border border-red-600 text-red-200 rounded text-xs transition font-semibold">
+                ⏹ Stop Assessment
+            </button>
+            <button onclick="toggleFullScreen()" class="px-3.5 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded text-xs text-white transition font-semibold">
                 ⛶ Fullscreen
             </button>
         </div>
     </div>
 
     <!-- Main Workspace Container -->
-    <div id="game-container" class="w-full max-w-6xl flex-1 bg-gray-900 border border-gray-800 rounded-b-lg p-6 relative shadow-2xl flex flex-col justify-between mb-4">
+    <div id="game-container" class="w-full max-w-6xl flex-1 bg-gray-900 border border-gray-800 rounded-lg p-6 relative shadow-2xl flex flex-col justify-between mb-4">
         
-        <!-- Status Panel -->
-        <div class="flex justify-between items-center mb-4 bg-gray-800 p-4 rounded-lg border border-gray-700 text-base">
-            <div>Section Progress: <span id="quota-display" class="font-bold text-yellow-400">0 / 5</span></div>
-            <div>Time Remaining: <span id="timer-display" class="font-bold text-cyan-400">Untimed</span></div>
-            <div>Score: <span id="score-display" class="font-bold text-green-400">0</span></div>
-        </div>
-
-        <!-- Section Context Banner -->
-        <div id="section-banner" class="mb-4 p-3 bg-blue-950/80 border border-blue-600 rounded-lg flex justify-between items-center text-xs">
-            <div id="section-banner-text" class="text-blue-200">
-                <span class="font-bold text-white">SECTION 1 (PRACTICE - UNTIMED):</span> Process 5 practice files (+10 correct / -5 incorrect). The Quality Control System will periodically flag outbox items.
-            </div>
-        </div>
-
         <!-- Streamlined QC Alert Banner -->
         <div id="compliance-alert" class="hidden mb-4 p-3 bg-amber-950/90 border border-amber-500 rounded-lg flex items-center justify-between animate-pulse-slow">
             <div class="flex items-center gap-2 text-xs text-amber-200">
@@ -70,8 +67,8 @@
                 
                 <!-- Active High-Salience Inspection Overlay Banner -->
                 <div id="inspection-mode-header" class="hidden absolute top-0 left-0 right-0 bg-yellow-500 text-black py-2 px-4 text-center font-bold text-xs uppercase tracking-widest flex justify-between items-center z-10 shadow-lg">
-                    <span>🔍 Active Outbox Inspection Mode — Modify Classification Below</span>
-                    <button onclick="exitInspectionMode()" class="px-2 py-0.5 bg-black text-yellow-400 text-[10px] rounded hover:bg-gray-900 transition">Return to Active Filing →</button>
+                    <span>Inspection Mode: you can reclassify the file if it was misclassified</span>
+                    <button onclick="exitInspectionMode()" class="px-2 py-0.5 bg-black text-yellow-400 text-[10px] rounded hover:bg-gray-900 transition font-bold">Done →</button>
                 </div>
 
                 <div class="text-xs text-gray-500 uppercase tracking-widest self-start font-semibold mt-2">
@@ -122,7 +119,7 @@
     <!-- Confirm Early Exit Modal -->
     <div id="confirm-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-900 border border-red-800 p-6 rounded-lg max-w-md w-full text-center shadow-2xl">
-            <h2 class="text-xl font-bold text-red-400 mb-2">Finish Assessment Early?</h2>
+            <h2 class="text-xl font-bold text-red-400 mb-2">Stop Assessment Early?</h2>
             <p class="text-xs text-gray-300 mb-6 leading-relaxed">
                 Are you sure you want to exit the assessment now? Your current score and progress will be saved immediately.
             </p>
@@ -137,7 +134,7 @@
     <div id="end-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-900 border border-gray-800 p-6 rounded-lg max-w-md w-full text-center">
             <h2 class="text-2xl font-bold text-green-400 mb-2">Assessment Complete!</h2>
-            <p class="text-sm text-gray-400 mb-4">Your 3-section behavioral latent stream has been transmitted.</p>
+            <p class="text-sm text-gray-400 mb-4">Your behavioral data stream has been transmitted.</p>
             <button onclick="location.reload()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded">Restart Simulation</button>
         </div>
     </div>
@@ -164,7 +161,7 @@ const BLOCK_DURATION = 45;
 let score = 0;
 let itemsProcessedInBlock = 0;
 let correctInBlock = 0;
-let sectionQuota = 5; 
+let sectionQuota = 10; 
 let timeLeft = BLOCK_DURATION;
 let timerInterval = null;
 let gameActive = false;
@@ -245,10 +242,12 @@ function generateCard(fileIndexInBlock) {
     let selectedBadgeStyle;
     let hasStealthIssue = false;
 
+    // SECTION 1: STRICT ZERO STROOP (100% CONGRUENCY FOR ALL 10 FILES)
     if (currentBlock === 1 || fileIndexInBlock <= 3) {
         selectedCardBorder = congruentStyles[targetType].cardBorder;
         selectedBadgeStyle = congruentStyles[targetType].badgeStyle;
     } else {
+        // SECTION 2/3 (Files 4-10): STROOP INTERFERENCE ACTIVATED
         selectedCardBorder = borderStyles[Math.floor(Math.random() * borderStyles.length)];
         selectedBadgeStyle = badgeStyles[Math.floor(Math.random() * badgeStyles.length)];
     }
@@ -290,9 +289,9 @@ function renderInstructionModal(sectionNum) {
                 <div class="text-green-400 font-bold text-sm">⚖️</div>
                 <div><span class="font-bold text-white block">3. Scoring</span>Receive <span class="text-green-400 font-bold">+10 points</span> for correct classification and <span class="text-red-400 font-bold">-5 points</span> for misclassification.</div>
             </div>
-            <div class="p-3 bg-blue-950/60 rounded border border-blue-800 flex items-start gap-3">
+            <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
                 <div class="text-cyan-400 font-bold text-sm">🏁</div>
-                <div><span class="font-bold text-white block">4. Practice Section (Untimed)</span>Section 1 is an untimed practice round with <span class="text-white font-bold">5 files total</span> to help you get familiar with filing documents and managing your outbox.</div>
+                <div><span class="font-bold text-white block">4. Practice Section (Untimed)</span>Section 1 is an untimed practice round with <span class="text-white font-bold">10 files total</span> to help you get familiar with filing documents and managing your outbox.</div>
             </div>
         `;
         btn.innerText = "Begin Section 1 (Practice) →";
@@ -344,34 +343,14 @@ function startBlock(blockNum) {
 
     if (timerInterval) clearInterval(timerInterval);
 
+    sectionQuota = 10; // All sections have 10 files
+
     if (currentBlock === 1) {
-        sectionQuota = 5;
-        document.getElementById('section-title').innerText = "Practice Section (Untimed)";
-        document.getElementById('section-banner-text').innerHTML = '<span class="font-bold text-white">SECTION 1 (PRACTICE - UNTIMED):</span> Process 5 practice files (+10 correct / -5 incorrect). The Quality Control System will periodically flag outbox items.';
         document.getElementById('timer-display').innerText = "Untimed";
-    } else if (currentBlock === 2) {
-        sectionQuota = 10;
+    } else if (currentBlock === 2 || currentBlock === 3) {
         timeLeft = BLOCK_DURATION;
-        document.getElementById('section-title').innerText = "Monitored Operational Audit";
-        document.getElementById('section-banner-text').innerHTML = '<span class="font-bold text-white">SECTION 2 (MONITORED):</span> Process 10 files (+10 correct / -5 incorrect). The Quality Control System is ACTIVE.';
         document.getElementById('timer-display').innerText = `${timeLeft}s`;
         
-        timerInterval = setInterval(() => {
-            if (!gameActive) return;
-            timeLeft--;
-            document.getElementById('timer-display').innerText = `${timeLeft}s`;
-            if (timeLeft <= 0) {
-                recordEvent("SYSTEM_EVENT", "BLOCK_TIMEOUT", `Section ${currentBlock} expired`);
-                advanceBlock();
-            }
-        }, 1000);
-    } else if (currentBlock === 3) {
-        sectionQuota = 10;
-        timeLeft = BLOCK_DURATION;
-        document.getElementById('section-title').innerText = "Unmonitored Quality Operations";
-        document.getElementById('section-banner-text').innerHTML = '<span class="font-bold text-yellow-300">SECTION 3 (UNMONITORED):</span> The Quality Control System is OFFLINE. Maintain quality standards independently.';
-        document.getElementById('timer-display').innerText = `${timeLeft}s`;
-
         timerInterval = setInterval(() => {
             if (!gameActive) return;
             timeLeft--;
@@ -459,9 +438,10 @@ function sortActiveCard(selectedCategory) {
     document.getElementById('score-display').innerText = score;
 
     // LAGGED COMPLIANCE FLAG PROTOCOL
-    if (currentBlock === 1 && itemsProcessedInBlock === 3) {
-        const targetDoc = processedFiles[1] ? processedFiles[1].id : processedFiles[0].id;
-        triggerComplianceFlag(targetDoc, "Section 1 File #3 Notification (Flagged File #2)");
+    // Section 1: File #6 filed -> Flag triggers for File #7
+    if (currentBlock === 1 && itemsProcessedInBlock === 6) {
+        const targetDoc = processedFiles[0].id;
+        triggerComplianceFlag(targetDoc, "Section 1 File #6 Notification (Flagged File #7)");
     } 
     else if (currentBlock === 2 && itemsProcessedInBlock === 6) {
         const targetDoc = processedFiles[1] ? processedFiles[1].id : processedFiles[0].id;
@@ -474,12 +454,11 @@ function sortActiveCard(selectedCategory) {
 
     renderOutbox();
 
-    if (itemsProcessedInBlock >= sectionQuota) {
-        recordEvent("SYSTEM_EVENT", "SECTION_QUOTA_REACHED", `Section ${currentBlock} quota completed`);
-        advanceBlock();
-    } else {
+    if (itemsProcessedInBlock < sectionQuota) {
         currentCard = generateCard(itemsProcessedInBlock + 1);
         renderCard();
+    } else {
+        recordEvent("SYSTEM_EVENT", "SECTION_QUOTA_REACHED", `Section ${currentBlock} quota completed. Awaiting user navigation or timer expiry.`);
     }
 }
 
@@ -516,13 +495,10 @@ function auditOutboxItem(docId) {
     isInspecting = true;
     const arena = document.getElementById('card-arena-container');
     const header = document.getElementById('inspection-mode-header');
-    const label = document.getElementById('card-area-label');
     const cardBox = document.getElementById('active-card');
 
     header.classList.remove('hidden');
     arena.classList.add('bg-yellow-950/20', 'border-yellow-500');
-    label.innerText = "OUTBOX ARCHIVE INSPECTION & RE-CLASSIFICATION";
-    label.className = "text-xs text-yellow-400 font-bold uppercase tracking-widest self-start mt-2";
 
     cardBox.className = "card bg-gray-900 border-4 border-yellow-500 rounded-xl p-8 w-80 text-center my-auto shadow-2xl relative z-0 animate-pulse-slow";
     
@@ -531,15 +507,21 @@ function auditOutboxItem(docId) {
 
     const isMatch = (file.filedAs === file.type);
     document.getElementById('card-rule-detail').innerText = isMatch 
-        ? `Current: VERIFIED & CORRECT | Filed As: ${file.filedAs}` 
-        : `Current: MISMATCH DETECTED | Filed As: ${file.filedAs} (Required: ${file.type})`;
+        ? `Status: VERIFIED & CORRECT | Filed As: ${file.filedAs}` 
+        : `Status: MISMATCH DETECTED | Filed As: ${file.filedAs} (Required: ${file.type})`;
     
     const cardElem = document.getElementById('card-type');
     cardElem.innerText = file.type;
     cardElem.className = `inline-block px-4 py-1.5 text-xs rounded-full font-bold tracking-wide ${file.badgeStyle}`;
 
-    document.getElementById('btn-cat-a').innerText = "Re-File to Category A";
-    document.getElementById('btn-cat-b').innerText = "Re-File to Category B";
+    // CONTEXTUAL BUTTON LABELS ACCORDING TO FILED STATE
+    if (file.filedAs === 'Category A') {
+        document.getElementById('btn-cat-a').innerText = "Keep in Category A";
+        document.getElementById('btn-cat-b').innerText = "Switch to Category B";
+    } else {
+        document.getElementById('btn-cat-a').innerText = "Switch to Category A";
+        document.getElementById('btn-cat-b').innerText = "Keep in Category B";
+    }
 
     renderOutbox();
 }
@@ -581,13 +563,10 @@ function exitInspectionMode() {
 function exitInspectionModeUI() {
     const arena = document.getElementById('card-arena-container');
     const header = document.getElementById('inspection-mode-header');
-    const label = document.getElementById('card-area-label');
     const cardBox = document.getElementById('active-card');
 
     header.classList.add('hidden');
     arena.classList.remove('bg-yellow-950/20', 'border-yellow-500');
-    label.innerText = "Active Incoming Document";
-    label.className = "text-xs text-gray-500 uppercase tracking-widest self-start font-semibold mt-2";
 
     const defaultBorder = currentCard ? currentCard.cardBorder : 'border-blue-500';
     cardBox.className = `card bg-gray-800 border-2 ${defaultBorder} rounded-xl p-8 w-80 text-center my-auto shadow-2xl relative z-0`;
@@ -618,6 +597,11 @@ function renderOutbox() {
         `;
         list.appendChild(item);
     });
+}
+
+function manualAdvanceSection() {
+    recordEvent("USER_ACTION", "MANUAL_NEXT_SECTION_CLICK", `User clicked Next Section during Block ${currentBlock}`);
+    advanceBlock();
 }
 
 function advanceBlock() {
