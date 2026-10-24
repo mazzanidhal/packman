@@ -7,150 +7,167 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #111; color: white; margin: 0; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
-        .card { transition: all 0.2s ease; cursor: pointer; }
-        .card:hover { transform: translateY(-2px); }
+        .card { transition: all 0.2s ease; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body class="select-none">
 
-    <!-- Top Navigation Header -->
+    <!-- Header Bar -->
     <div class="w-full max-w-4xl px-4 py-2 flex justify-between items-center bg-gray-900 border-b border-gray-800 mb-4">
         <div>
-            <h1 class="text-xl font-bold text-blue-400">Virtual Office: File Filing Task</h1>
-            <p class="text-xs text-gray-400">Sort incoming documents into the correct client folders.</p>
+            <h1 class="text-xl font-bold text-blue-400">Virtual Office: Document Processing Audit</h1>
+            <p class="text-xs text-gray-400">Section <span id="block-display" class="font-bold text-white">1 of 3</span> — Multi-Stage Quality Assessment</p>
         </div>
         <button onclick="toggleFullScreen()" class="px-3 py-1 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded text-xs text-white transition">
             ⛶ Fullscreen
         </button>
     </div>
 
-    <!-- Main Game Interface -->
+    <!-- Main Workspace -->
     <div id="game-container" class="w-full max-w-4xl bg-gray-900 border border-gray-800 rounded-lg p-6 relative shadow-2xl">
         
-        <!-- Status Bar -->
-        <div class="flex justify-between items-center mb-6 bg-gray-800 p-3 rounded border border-gray-700">
-            <div>Quota Progress: <span id="quota-display" class="font-bold text-yellow-400">0 / 8</span></div>
-            <div>Time Remaining: <span id="timer-display" class="font-bold text-cyan-400">60</span>s</div>
+        <!-- Status Panel -->
+        <div class="flex justify-between items-center mb-4 bg-gray-800 p-3 rounded border border-gray-700">
+            <div>Quota Required: <span id="quota-display" class="font-bold text-yellow-400">0 / 15</span></div>
+            <div>Time Remaining: <span id="timer-display" class="font-bold text-cyan-400">120</span>s</div>
             <div>Score: <span id="score-display" class="font-bold text-green-400">0</span></div>
         </div>
 
-        <!-- Quota Complete Notification Banner -->
-        <div id="quota-banner" class="hidden mb-4 p-3 bg-green-900/80 border border-green-500 rounded text-center flex justify-between items-center animate-pulse">
-            <span class="text-green-200 text-sm font-semibold">✓ Mandatory Quota Reached! You can advance now or continue filing remaining files.</span>
-            <button id="advance-btn" onclick="finishTask()" class="px-4 py-1.5 bg-green-600 hover:bg-green-500 text-white font-bold text-sm rounded shadow transition">
-                Finish & Advance →
+        <!-- Balanced Payoff Banner (Achievement Striving Trigger) -->
+        <div id="quota-banner" class="hidden mb-4 p-3 bg-blue-950 border border-blue-500 rounded flex justify-between items-center">
+            <div class="text-left">
+                <div class="text-white text-sm font-bold">Mandatory Quota Met! Choose Strategy:</div>
+                <div class="text-xs text-blue-200">
+                    • <span class="text-yellow-300 font-semibold">Finish Block Now:</span> Claim +15 Speed Bonus points per remaining second.<br>
+                    • <span class="text-green-300 font-semibold">Continue Filing:</span> Earn +15 Yield points for every extra document sorted.
+                </div>
+            </div>
+            <button id="advance-btn" onclick="advanceBlock()" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-xs rounded shadow transition ml-4">
+                Claim Speed Bonus & Advance →
             </button>
         </div>
 
-        <!-- Workplace Arena -->
-        <div class="grid grid-cols-12 gap-6 min-h-[340px]">
+        <!-- Work Arena -->
+        <div class="grid grid-cols-12 gap-6 min-h-[360px]">
             
-            <!-- Left: Incoming Active File -->
+            <!-- Left: Primary Card Area -->
             <div class="col-span-8 bg-gray-950 p-4 rounded border border-gray-800 flex flex-col items-center justify-between">
-                <div class="text-xs text-gray-500 uppercase tracking-widest self-start">Active File to File</div>
+                <div class="text-xs text-gray-500 uppercase tracking-widest self-start">Active Incoming Document</div>
                 
-                <div id="active-card" class="card bg-gray-800 border-2 border-blue-500 rounded-lg p-6 w-64 text-center my-4 shadow-lg">
+                <div id="active-card" class="card bg-gray-800 border-2 border-blue-500 rounded-lg p-6 w-72 text-center my-4 shadow-lg">
                     <div id="card-id" class="text-xs text-blue-400 font-mono mb-1">DOC-101</div>
                     <div id="card-name" class="text-lg font-bold text-white mb-2">Alpha Invoice</div>
-                    <div id="card-type" class="inline-block px-2 py-1 text-xs rounded bg-blue-900/50 text-blue-300 font-semibold">Category A</div>
+                    <div id="card-type" class="inline-block px-3 py-1 text-xs rounded bg-blue-900/50 text-blue-300 font-semibold">Category A</div>
                 </div>
 
-                <!-- Sorting Controls -->
+                <!-- Action Controls -->
                 <div class="flex gap-4 w-full justify-center">
-                    <button onclick="sortActiveCard('Category A')" class="flex-1 py-3 bg-blue-700 hover:bg-blue-600 rounded font-bold transition">
+                    <button onclick="sortActiveCard('Category A')" class="flex-1 py-3 bg-blue-700 hover:bg-blue-600 active:bg-blue-800 rounded font-bold text-sm transition">
                         File to Category A
                     </button>
-                    <button onclick="sortActiveCard('Category B')" class="flex-1 py-3 bg-purple-700 hover:bg-purple-600 rounded font-bold transition">
+                    <button onclick="sortActiveCard('Category B')" class="flex-1 py-3 bg-purple-700 hover:bg-purple-600 active:bg-purple-800 rounded font-bold text-sm transition">
                         File to Category B
                     </button>
                 </div>
             </div>
 
-            <!-- Right: Outbox / Completed Files Tray -->
+            <!-- Right: Outbox Tray -->
             <div class="col-span-4 bg-gray-950 p-4 rounded border border-gray-800 flex flex-col">
-                <div class="text-xs text-gray-500 uppercase tracking-widest mb-2">Outbox Tray (Completed)</div>
-                <div id="outbox-list" class="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[280px]">
-                    <!-- Processed files render here -->
+                <div class="text-xs text-gray-500 uppercase tracking-widest mb-2">Outbox Tray (Filed Files)</div>
+                <div id="outbox-list" class="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[300px]">
+                    <!-- Processed cards append here -->
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- End Game Overlay -->
+    <!-- Completion Modal -->
     <div id="end-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-900 border border-gray-800 p-6 rounded-lg max-w-md w-full text-center">
-            <h2 class="text-2xl font-bold text-green-400 mb-2">Task Complete!</h2>
-            <p class="text-sm text-gray-400 mb-4">Your workspace behavioral metrics have been compiled.</p>
+            <h2 class="text-2xl font-bold text-green-400 mb-2">Assessment Complete!</h2>
+            <p class="text-sm text-gray-400 mb-4">Your workplace behavioral profile has been compiled.</p>
             
-            <div id="save-status" class="text-yellow-400 font-bold animate-pulse text-sm mb-4">Saving data to Google Sheets...</div>
-            <button onclick="location.reload()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded">Replay Task</button>
+            <div id="save-status" class="text-yellow-400 font-bold animate-pulse text-sm mb-4">Logging data to Google Sheets...</div>
+            <button onclick="location.reload()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded">Restart Simulation</button>
         </div>
     </div>
 
 <script>
-/* ==========================================
-   CONFIG & GOOGLE SHEETS ENDPOINT
-   ========================================== */
+/* CONFIGURATION */
 const GOOGLE_WEB_APP_URL = "https://script.google.com/a/macros/tamu.edu/s/AKfycbybDNP2q6Gw-WpKItRRAnI1jJQvHxko_RMdeiSCfW9EkhODyTXqlWM88YrgLzp1VDkU/exec"; 
 
-/* Fullscreen Toggle */
 function toggleFullScreen() {
     if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(err => console.error(err));
-    } else {
-        if (document.exitFullscreen) document.exitFullscreen();
+    } else if (document.exitFullscreen) {
+        document.exitFullscreen();
     }
 }
 
-/* ==========================================
-   GAME STATE & BEHAVIORAL LOGGING VARIABLES
-   ========================================== */
+/* STATE VARIABLES */
+let currentBlock = 1;
+const TOTAL_BLOCKS = 3;
+const BLOCK_DURATION = 120; // 2 minutes per block = 6 minutes total
+
 let score = 0;
-let itemsProcessed = 0;
-let mandatoryQuota = 8;
-let timeLeft = 60;
+let itemsProcessedInBlock = 0;
+let mandatoryQuota = 15; // Requires ~15 items per block before choice appears
+let timeLeft = BLOCK_DURATION;
 let timerInterval = null;
 let gameActive = true;
 
-// Covert Behavioral Metrics
-let retroactiveFixCount = 0;     // Orderliness / Attention to Detail metric
-let overQuotaCount = 0;          // Achievement Striving metric
-let quotaReachedTimestamp = null;// Time when minimum threshold was met
+// Behavioral Metrics
 let totalFilesSorted = 0;
+let retroactiveFixCount = 0;
+let overQuotaCount = 0;
 
-/* Document Queue Generation */
-const categories = ['Category A', 'Category B'];
-let currentCard = null;
 let processedFiles = [];
+let currentCard = null;
+
+const categories = ['Category A', 'Category B'];
 
 function generateCard(index) {
     const type = categories[Math.floor(Math.random() * categories.length)];
     return {
         id: `DOC-${100 + index}`,
-        name: type === 'Category A' ? 'Alpha Report' : 'Beta Ledger',
-        type: type,
-        status: 'correct'
+        name: type === 'Category A' ? 'Alpha Record' : 'Beta Ledger',
+        type: type
     };
 }
 
-/* Initialize Game Engine */
 function init() {
-    currentCard = generateCard(1);
+    startBlock(1);
+}
+
+function startBlock(blockNum) {
+    currentBlock = blockNum;
+    itemsProcessedInBlock = 0;
+    timeLeft = BLOCK_DURATION;
+    processedFiles = [];
+    
+    document.getElementById('block-display').innerText = `${currentBlock} of ${TOTAL_BLOCKS}`;
+    document.getElementById('quota-display').innerText = `${itemsProcessedInBlock} / ${mandatoryQuota}`;
+    document.getElementById('quota-banner').classList.add('hidden');
+    
+    currentCard = generateCard(totalFilesSorted + 1);
     renderCard();
+    renderOutbox();
+
+    if (timerInterval) clearInterval(timerInterval);
     
     timerInterval = setInterval(() => {
         if (!gameActive) return;
         timeLeft--;
         document.getElementById('timer-display').innerText = timeLeft;
 
-        // Trigger Silent Injected Error at second 45 on item #3 in the outbox
-        if (timeLeft === 45 && processedFiles.length >= 3 && !processedFiles[2].hasBeenCorrupted) {
-            injectRetroactiveError(2);
+        // Covert Mini-Event Trigger: Injected Outbox Error at 60s remaining in Block 1 & 2
+        if (timeLeft === 60 && processedFiles.length >= 4 && !processedFiles[3].hasBeenCorrupted) {
+            injectRetroactiveError(3);
         }
 
         if (timeLeft <= 0) {
-            endGame();
+            advanceBlock();
         }
     }, 1000);
 }
@@ -160,70 +177,62 @@ function renderCard() {
     document.getElementById('card-name').innerText = currentCard.name;
     document.getElementById('card-type').innerText = currentCard.type;
     
-    // Styling toggle based on category
     const cardElem = document.getElementById('card-type');
     if (currentCard.type === 'Category A') {
-        cardElem.className = "inline-block px-2 py-1 text-xs rounded bg-blue-900/50 text-blue-300 font-semibold";
+        cardElem.className = "inline-block px-3 py-1 text-xs rounded bg-blue-900/50 text-blue-300 font-semibold";
     } else {
-        cardElem.className = "inline-block px-2 py-1 text-xs rounded bg-purple-900/50 text-purple-300 font-semibold";
+        cardElem.className = "inline-block px-3 py-1 text-xs rounded bg-purple-900/50 text-purple-300 font-semibold";
     }
 }
 
-/* Primary Sorting Action */
 function sortActiveCard(selectedCategory) {
     if (!gameActive) return;
 
     totalFilesSorted++;
+    itemsProcessedInBlock++;
+    
     const isCorrect = selectedCategory === currentCard.type;
     if (isCorrect) score += 10;
     
-    // Push into Outbox
     processedFiles.unshift({
         ...currentCard,
         filedAs: selectedCategory,
         isCorrupted: false
     });
 
-    itemsProcessed++;
-    document.getElementById('quota-display').innerText = `${itemsProcessed} / ${mandatoryQuota}`;
+    document.getElementById('quota-display').innerText = `${itemsProcessedInBlock} / ${mandatoryQuota}`;
     document.getElementById('score-display').innerText = score;
 
-    // Check Quota State
-    if (itemsProcessed >= mandatoryQuota) {
+    // Check Quota Condition
+    if (itemsProcessedInBlock >= mandatoryQuota) {
         document.getElementById('quota-banner').classList.remove('hidden');
-        if (!quotaReachedTimestamp) quotaReachedTimestamp = Date.now();
-        if (itemsProcessed > mandatoryQuota) {
-            overQuotaCount++; // Logging over-quota voluntary effort
+        if (itemsProcessedInBlock > mandatoryQuota) {
+            overQuotaCount++; // Voluntary extra-role effort
         }
     }
 
     renderOutbox();
-    
-    // Load next card
     currentCard = generateCard(totalFilesSorted + 1);
     renderCard();
 }
 
-/* ==========================================
-   COVERT MINI-EVENT: SILENT RETROACTIVE AUDIT
-   ========================================== */
 function injectRetroactiveError(index) {
-    // Quietly corrupt a file in the outbox tray
-    processedFiles[index].isCorrupted = true;
-    processedFiles[index].hasBeenCorrupted = true;
-    processedFiles[index].filedAs = processedFiles[index].type === 'Category A' ? 'Category B' : 'Category A'; // Flip to mismatch
-    renderOutbox();
+    if (processedFiles[index]) {
+        processedFiles[index].isCorrupted = true;
+        processedFiles[index].hasBeenCorrupted = true;
+        processedFiles[index].filedAs = processedFiles[index].type === 'Category A' ? 'Category B' : 'Category A';
+        renderOutbox();
+    }
 }
 
 function fixOutboxFile(index) {
     if (!gameActive) return;
     
-    // Voluntary correction executed
     if (processedFiles[index].isCorrupted) {
         processedFiles[index].isCorrupted = false;
-        processedFiles[index].filedAs = processedFiles[index].type; // Revert back to correct state
-        retroactiveFixCount++;
-        score += 15; // Small reward
+        processedFiles[index].filedAs = processedFiles[index].type;
+        retroactiveFixCount++; // Orderliness metric
+        score += 15;
         document.getElementById('score-display').innerText = score;
         renderOutbox();
     }
@@ -238,7 +247,7 @@ function renderOutbox() {
         const isMismatch = file.filedAs !== file.type || file.isCorrupted;
         
         item.className = `p-2 rounded text-xs flex justify-between items-center border ${
-            isMismatch ? 'bg-red-950/60 border-red-500 text-red-200 animate-pulse cursor-pointer' : 'bg-gray-900 border-gray-800 text-gray-400'
+            isMismatch ? 'bg-red-950/80 border-red-500 text-red-200 animate-pulse' : 'bg-gray-900 border-gray-800 text-gray-400'
         }`;
 
         item.innerHTML = `
@@ -252,13 +261,20 @@ function renderOutbox() {
     });
 }
 
-function finishTask() {
-    endGame();
+function advanceBlock() {
+    // Add speed bonus if advancing early
+    if (timeLeft > 0 && itemsProcessedInBlock >= mandatoryQuota) {
+        score += (timeLeft * 15);
+        document.getElementById('score-display').innerText = score;
+    }
+
+    if (currentBlock < TOTAL_BLOCKS) {
+        startBlock(currentBlock + 1);
+    } else {
+        endGame();
+    }
 }
 
-/* ==========================================
-   DATA LOGGING TO GOOGLE SHEETS
-   ========================================== */
 function endGame() {
     if (!gameActive) return;
     gameActive = false;
@@ -266,16 +282,14 @@ function endGame() {
 
     document.getElementById('end-modal').classList.remove('hidden');
 
-    // Compile psychological behavioral metrics
     const payload = {
         score: score,
         totalFilesSorted: totalFilesSorted,
-        retroactiveFixesPerformed: retroactiveFixCount, // Orderliness & Meticulousness metric
-        voluntaryOverQuotaFiles: overQuotaCount,        // Achievement Striving metric
-        completionTimeSeconds: 60 - timeLeft
+        retroactiveFixesPerformed: retroactiveFixCount,
+        voluntaryOverQuotaFiles: overQuotaCount,
+        completionTimeSeconds: (TOTAL_BLOCKS * BLOCK_DURATION) - timeLeft
     };
 
-    // Send payload to Google Sheets script
     fetch(GOOGLE_WEB_APP_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -295,7 +309,6 @@ function endGame() {
     });
 }
 
-// Start simulation on load
 init();
 </script>
 </body>
