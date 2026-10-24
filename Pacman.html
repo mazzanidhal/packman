@@ -23,7 +23,7 @@
                 <p class="text-xs text-gray-400">Section <span id="block-display" class="font-bold text-white">1 of 3</span> — <span id="section-title" class="text-yellow-400 font-semibold">Practice Section</span></p>
             </div>
             <span class="px-2 py-0.5 bg-blue-950 border border-blue-700 text-blue-300 font-mono text-[10px] rounded font-bold">
-                v3.8.0-InteractiveInspection
+                v3.9.0-BugFixAndCopy
             </span>
         </div>
         <div class="flex items-center gap-3">
@@ -85,7 +85,7 @@
                     <div id="card-type" class="inline-block px-4 py-1.5 text-xs rounded-full bg-blue-900/50 text-blue-300 font-bold tracking-wide">Category A</div>
                 </div>
 
-                <!-- Action Controls (Interactive for both live filing and inspection re-filing) -->
+                <!-- Action Controls -->
                 <div id="action-buttons-container" class="flex gap-6 w-full justify-center">
                     <button id="btn-cat-a" onclick="handleClassificationClick('Category A')" class="flex-1 py-4 bg-blue-700 hover:bg-blue-600 active:bg-blue-800 rounded-lg font-bold text-base transition shadow-md">
                         File to Category A
@@ -159,7 +159,7 @@ function toggleFullScreen() {
 /* STATE VARIABLES */
 let currentBlock = 1; 
 const TOTAL_BLOCKS = 3;
-const BLOCK_DURATION = 45; // Section 2 & 3 timer set to 45 seconds
+const BLOCK_DURATION = 45; 
 
 let score = 0;
 let itemsProcessedInBlock = 0;
@@ -172,6 +172,9 @@ let gameActive = false;
 // Inspection State
 let isInspecting = false;
 let inspectingDocId = null;
+
+// Active Card
+let currentCard = null;
 
 // Metrics
 let totalFilesSorted = 0;
@@ -224,7 +227,6 @@ const categories = ['Category A', 'Category B'];
 const regions = ['US-East', 'US-West', 'EU-Central'];
 const documentTitles = ['Quarterly Audit Report', 'Employee Record', 'Financial Ledger', 'Compliance Assessment', 'Vendor Invoice', 'Operations Summary'];
 
-// CONGRUENT STYLES vs STROOP STYLES
 const congruentStyles = {
     'Category A': { cardBorder: 'border-blue-500', badgeStyle: 'bg-blue-900/50 text-blue-300 border border-blue-700/50' },
     'Category B': { cardBorder: 'border-purple-500', badgeStyle: 'bg-purple-900/50 text-purple-300 border border-purple-700/50' }
@@ -243,12 +245,10 @@ function generateCard(fileIndexInBlock) {
     let selectedBadgeStyle;
     let hasStealthIssue = false;
 
-    // SECTION 1 & EARLY SECTION 2/3 (Files 1-3): STRICT 100% CONGRUENCY
     if (currentBlock === 1 || fileIndexInBlock <= 3) {
         selectedCardBorder = congruentStyles[targetType].cardBorder;
         selectedBadgeStyle = congruentStyles[targetType].badgeStyle;
     } else {
-        // FILES 4-10 IN SECTION 2/3: STROOP INTERFERENCE ACTIVATED
         selectedCardBorder = borderStyles[Math.floor(Math.random() * borderStyles.length)];
         selectedBadgeStyle = badgeStyles[Math.floor(Math.random() * badgeStyles.length)];
     }
@@ -278,21 +278,21 @@ function renderInstructionModal(sectionNum) {
     if (sectionNum === 1) {
         heading.innerText = "Section 1 Instructions: Practice & Onboarding";
         body.innerHTML = `
-            <div class="p-3 bg-blue-950/60 rounded border border-blue-800 flex items-start gap-3">
-                <div class="text-cyan-400 font-bold text-sm">🏁</div>
-                <div><span class="font-bold text-white block">1. Practice Section (Untimed)</span>Section 1 is an untimed practice round with <span class="text-white font-bold">5 files total</span> to help you get familiar with filing documents and managing your outbox.</div>
-            </div>
             <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
                 <div class="text-blue-400 font-bold text-sm">📁</div>
-                <div><span class="font-bold text-white block">2. Classification Task</span>Match incoming documents strictly by their <span class="text-white font-bold">Text Classification Badge</span> (Category A vs Category B).</div>
+                <div><span class="font-bold text-white block">1. Classification Task</span>Match each file to the correct category (Category A vs Category B).</div>
             </div>
             <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
                 <div class="text-amber-400 font-bold text-sm">🔍</div>
-                <div><span class="font-bold text-white block">3. Quality Control Audits & Interactive Outbox Inspection</span>The Quality Control System periodically audits filed work by attaching a <span class="text-amber-400 font-bold">⚠️ QC FLAG</span> to a folder in your Outbox. You can click <span class="text-cyan-300 font-bold">🔍 Inspect</span> on any folder in your Outbox at any time to review and re-classify past filings.</div>
+                <div><span class="font-bold text-white block">2. Quality Control Audits & Outbox Inspection</span>The Quality Control System periodically audits filed work by attaching a <span class="text-amber-400 font-bold">⚠️ QC FLAG</span> to a folder in your Outbox. You can click <span class="text-cyan-300 font-bold">🔍 Inspect</span> on any folder in your Outbox at any time to review and re-classify past filings.</div>
             </div>
             <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
-                <div class="text-green-400 font-bold text-sm">秤</div>
-                <div><span class="font-bold text-white block">4. Scoring</span>Receive <span class="text-green-400 font-bold">+10 points</span> for correct classification and <span class="text-red-400 font-bold">-5 points</span> for misclassification.</div>
+                <div class="text-green-400 font-bold text-sm">⚖️</div>
+                <div><span class="font-bold text-white block">3. Scoring</span>Receive <span class="text-green-400 font-bold">+10 points</span> for correct classification and <span class="text-red-400 font-bold">-5 points</span> for misclassification.</div>
+            </div>
+            <div class="p-3 bg-blue-950/60 rounded border border-blue-800 flex items-start gap-3">
+                <div class="text-cyan-400 font-bold text-sm">🏁</div>
+                <div><span class="font-bold text-white block">4. Practice Section (Untimed)</span>Section 1 is an untimed practice round with <span class="text-white font-bold">5 files total</span> to help you get familiar with filing documents and managing your outbox.</div>
             </div>
         `;
         btn.innerText = "Begin Section 1 (Practice) →";
@@ -394,7 +394,7 @@ function startBlock(blockNum) {
 }
 
 function renderCard() {
-    if (isInspecting) return;
+    if (isInspecting || !currentCard) return;
 
     document.getElementById('card-id').innerText = currentCard.id;
     document.getElementById('card-name').innerText = currentCard.name;
@@ -538,7 +538,6 @@ function auditOutboxItem(docId) {
     cardElem.innerText = file.type;
     cardElem.className = `inline-block px-4 py-1.5 text-xs rounded-full font-bold tracking-wide ${file.badgeStyle}`;
 
-    // Update Action Buttons for Re-Filing
     document.getElementById('btn-cat-a').innerText = "Re-File to Category A";
     document.getElementById('btn-cat-b').innerText = "Re-File to Category B";
 
@@ -555,12 +554,11 @@ function refileInspectedCard(newCategory) {
 
     file.filedAs = newCategory;
 
-    // Adjust score based on correction dynamics
     if (!oldWasCorrect && newIsCorrect) {
-        score += 15; // Net +10 for being right now, cancelling previous -5 penalty
+        score += 15; 
         correctInBlock++;
     } else if (oldWasCorrect && !newIsCorrect) {
-        score -= 15; // Lost previous +10 and incurred -5 penalty
+        score -= 15; 
         correctInBlock--;
     }
 
@@ -591,7 +589,8 @@ function exitInspectionModeUI() {
     label.innerText = "Active Incoming Document";
     label.className = "text-xs text-gray-500 uppercase tracking-widest self-start font-semibold mt-2";
 
-    cardBox.className = `card bg-gray-800 border-2 ${currentCard ? currentCard.cardBorder : 'border-blue-500'} rounded-xl p-8 w-80 text-center my-auto shadow-2xl relative z-0`;
+    const defaultBorder = currentCard ? currentCard.cardBorder : 'border-blue-500';
+    cardBox.className = `card bg-gray-800 border-2 ${defaultBorder} rounded-xl p-8 w-80 text-center my-auto shadow-2xl relative z-0`;
     
     document.getElementById('btn-cat-a').innerText = "File to Category A";
     document.getElementById('btn-cat-b').innerText = "File to Category B";
