@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pac-Man Data Logger</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #111; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+        canvas { background-color: black; border: 4px solid #1919A6; border-radius: 5px; box-shadow: 0 0 15px rgba(25, 25, 166, 0.5); }
+        #ui-layer { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); width: 400px; height: 400px; z-index: 10; display: none; border-radius: 5px; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="mb-4 text-center">
+        <h1 class="text-3xl font-bold text-yellow-400 mb-2">Data-Logging Pac-Man</h1>
+        <div class="flex gap-6 text-lg">
+            <div>Score: <span id="scoreDisplay" class="font-bold">0</span></div>
+            <div>Time: <span id="timeDisplay" class="font-bold">0</span>s</div>
+        </div>
+        <p class="text-sm text-gray-400 mt-2">Use Arrow Keys to move. Eat the big dots to eat ghosts!</p>
+    </div>
+
+    <div style="position: relative; width: 400px; height: 400px;">
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        
+        <!-- Game Over / Data Screen -->
+        <div id="ui-layer">
+            <h2 id="endTitle" class="text-3xl font-bold text-red-500 mb-2">Game Over!</h2>
+            <div class="text-left mb-4 bg-gray-800 p-4 rounded w-3/4">
+                <p>Score: <span id="finalScore" class="text-yellow-400 font-bold">0</span></p>
+                <p>Time Alive: <span id="finalTime" class="text-blue-400 font-bold">0</span>s</p>
+                <p>Pellets Eaten: <span id="finalPellets" class="text-white font-bold">0</span></p>
+                <p>Ghosts Eaten: <span id="finalGhosts" class="text-cyan-400 font-bold">0</span></p>
+            </div>
+            <p id="saveStatus" class="text-yellow-400 font-bold animate-pulse">Saving to Google Sheets...</p>
+            <button onclick="location.reload()" class="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">Play Again</button>
+        </div>
+    </div>
+
+<script>
+/* ==========================================
+   IMPORTANT: GOOGLE SHEETS SETUP
+   ========================================== */
+const GOOGLE_WEB_APP_URL = "https://script.google.com/a/macros/tamu.edu/s/AKfycbybDNP2q6Gw-WpKItRRAnI1jJQvHxko_RMdeiSCfW9EkhODyTXqlWM88YrgLzp1VDkU/exec"; 
+
+/* Game Variables */
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+let score = 0, pelletsEaten = 0, ghostsEaten = 0, frames = 0;
+let gameActive = true, powerMode = false, powerTimer = 0;
+let startTime = Date.now();
+
+// Player
+let pacman = { x: 200, y: 200, size: 10, speed: 2.5, dx: 0, dy: 0 };
+
+// Entities
+let pellets = [];
+let powerPellets = [ {x: 30, y: 30}, {x: 370, y: 30}, {x: 30, y: 370}, {x: 370, y: 370} ];
+let ghosts = [
+    { x: 50, y: 50, size: 12, speed: 1.2, color: 'red', dx: 1.2, dy: 1.2 },
+    { x: 350, y: 350, size: 12, speed: 1.5, color: 'pink', dx: -1.5, dy: -1.5 }
+];
+
+// Generate standard pellets
+for (let i = 20; i < 400; i += 40) {
+    for (let j = 20; j < 400; j += 40) {
+        if ((i>150 && i<250) && (j>150 && j<250)) continue; // Keep center clear
+        pellets.push({ x: i, y: j, active: true });
+    }
+}
+
+/* Input */
+document.addEventListener("keydown", (e) => {
+    // Prevent default scrolling for arrow keys
+    if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
+        e.preventDefault();
+    }
+    if (e.key === "ArrowUp") { pacman.dx = 0; pacman.dy = -pacman.speed; }
+    if (e.key === "ArrowDown") { pacman.dx = 0; pacman.dy = pacman.speed; }
+    if (e.key === "ArrowLeft") { pacman.dx = -pacman.speed; pacman.dy = 0; }
+    if (e.key === "ArrowRight") { pacman.dx = pacman.speed; pacman.dy = 0; }
+});
+
+/* Game Engine */
+function update() {
+    if (!gameActive) return;
+    frames++;
+    document.getElementById("scoreDisplay").innerText = score;
+    document.getElementById("timeDisplay").innerText = Math.floor((Date.now() - startTime) / 1000);
+
+    // Power Mode Timer
+    if (powerMode) {
+        powerTimer--;
+        if (powerTimer <= 0) powerMode = false;
+    }
+
+    // Move Pacman
+    pacman.x += pacman.dx;
+    pacman.y += pacman.dy;
+    
+    // Wall wrapping
+    if (pacman.x < 0) pacman.x = 400; if (pacman.x > 400) pacman.x = 0;
+    if (pacman.y < 0) pacman.y = 400; if (pacman.y > 400) pacman.y = 0;
+
+    // Eat standard pellets
+    pellets.forEach(p => {
+        if (p.active && Math.hypot(pacman.x - p.x, pacman.y - p.y) < pacman.size + 3) {
+            p.active = false;
+            score += 10;
+            pelletsEaten++;
+        }
+    });
+
+    // Eat Power Pellets
+    powerPellets.forEach((pp, index) => {
+        if (Math.hypot(pacman.x - pp.x, pacman.y - pp.y) < pacman.size + 6) {
+            powerPellets.splice(index, 1);
+            score += 50;
+            powerMode = true;
+            powerTimer = 300; // ~5 seconds at 60fps
+        }
+    });
+
+    // Move & Check Ghosts
+    ghosts.forEach(g => {
+        // Simple bounce AI
+        g.x += g.dx; g.y += g.dy;
+        if (g.x < 10 || g.x > 390) g.dx *= -1;
+        if (g.y < 10 || g.y > 390) g.dy *= -1;
+
+        // Collision
+        if (Math.hypot(pacman.x - g.x, pacman.y - g.y) < pacman.size + g.size) {
+            if (powerMode) {
+                // Eat ghost
+                g.x = 200; g.y = 200; // Reset to center
+                score += 200;
+                ghostsEaten++;
+            } else {
+                // Hit by ghost
+                endGame();
+            }
+        }
+    });
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw standard pellets
+    ctx.fillStyle = "white";
+    pellets.forEach(p => {
+        if (p.active) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    });
+
+    // Draw Power Pellets
+    ctx.fillStyle = (frames % 20 < 10) ? "white" : "yellow"; // Blink effect
+    powerPellets.forEach(pp => {
+        ctx.beginPath();
+        ctx.arc(pp.x, pp.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    // Draw Pacman
+    ctx.fillStyle = "yellow";
+    ctx.beginPath();
+    ctx.arc(pacman.x, pacman.y, pacman.size, 0.2 * Math.PI, 1.8 * Math.PI);
+    ctx.lineTo(pacman.x, pacman.y);
+    ctx.fill();
+
+    // Draw Ghosts
+    ghosts.forEach(g => {
+        ctx.fillStyle = powerMode ? "cyan" : g.color;
+        ctx.beginPath();
+        ctx.arc(g.x, g.y, g.size, 0, Math.PI * 2);
+        ctx.fill();
+    });
+}
+
+function loop() {
+    update();
+    draw();
+    if (gameActive) requestAnimationFrame(loop);
+}
+
+/* ==========================================
+   DATA SENDING LOGIC
+   ========================================== */
+function endGame() {
+    gameActive = false;
+    let finalTime = Math.floor((Date.now() - startTime) / 1000);
+    
+    // Update UI
+    document.getElementById("ui-layer").style.display = "flex";
+    document.getElementById("finalScore").innerText = score;
+    document.getElementById("finalTime").innerText = finalTime;
+    document.getElementById("finalPellets").innerText = pelletsEaten;
+    document.getElementById("finalGhosts").innerText = ghostsEaten;
+
+    // Prepare data
+    const gameData = {
+        score: score,
+        playTime: finalTime,
+        pelletsEaten: pelletsEaten,
+        ghostsEaten: ghostsEaten
+    };
+
+    const statusText = document.getElementById("saveStatus");
+
+    // Send data to Google Sheets
+    fetch(GOOGLE_WEB_APP_URL, {
+        method: 'POST',
+        mode: 'no-cors', 
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(gameData)
+    })
+    .then(() => {
+        statusText.innerText = "Data successfully saved to Google Sheets!";
+        statusText.className = "text-green-400 font-bold";
+    })
+    .catch(error => {
+        console.error("Error saving data:", error);
+        statusText.innerText = "Failed to save data. Check console.";
+        statusText.className = "text-red-500 font-bold";
+    });
+}
+
+// Start Game
+loop();
+</script>
+</body>
+</html>
