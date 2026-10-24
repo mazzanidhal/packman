@@ -34,7 +34,7 @@
             <div>Score: <span id="score-display" class="font-bold text-green-400">0</span></div>
         </div>
 
-        <!-- Balanced Payoff Banner (Achievement Striving Trigger) -->
+        <!-- Balanced Payoff Banner -->
         <div id="quota-banner" class="hidden mb-4 p-3 bg-blue-950 border border-blue-500 rounded flex justify-between items-center">
             <div class="text-left">
                 <div class="text-white text-sm font-bold">Mandatory Quota Met! Choose Strategy:</div>
@@ -131,9 +131,9 @@
     <div id="end-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-900 border border-gray-800 p-6 rounded-lg max-w-md w-full text-center">
             <h2 class="text-2xl font-bold text-green-400 mb-2">Assessment Complete!</h2>
-            <p class="text-sm text-gray-400 mb-4">Your workplace behavioral profile has been compiled.</p>
+            <p class="text-sm text-gray-400 mb-4">Your detailed event log has been compiled.</p>
             
-            <div id="save-status" class="text-yellow-400 font-bold animate-pulse text-sm mb-4">Logging data to Google Sheets...</div>
+            <div id="save-status" class="text-yellow-400 font-bold animate-pulse text-sm mb-4">Logging event stream to Google Sheets...</div>
             <button onclick="location.reload()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded">Restart Simulation</button>
         </div>
     </div>
@@ -141,6 +141,9 @@
 <script>
 /* CONFIGURATION */
 const GOOGLE_WEB_APP_URL = "https://script.google.com/a/macros/tamu.edu/s/AKfycbybDNP2q6Gw-WpKItRRAnI1jJQvHxko_RMdeiSCfW9EkhODyTXqlWM88YrgLzp1VDkU/exec"; 
+
+// Unique ID for this participant session
+const SESSION_ID = 'SESS-' + Math.random().toString(36).substr(2, 9).toUpperCase();
 
 function toggleFullScreen() {
     if (!document.fullscreenElement) {
@@ -153,22 +156,36 @@ function toggleFullScreen() {
 /* STATE VARIABLES */
 let currentBlock = 1;
 const TOTAL_BLOCKS = 3;
-const BLOCK_DURATION = 120; // 2 minutes per block = 6 minutes total
+const BLOCK_DURATION = 120;
 
 let score = 0;
 let itemsProcessedInBlock = 0;
 let mandatoryQuota = 15;
 let timeLeft = BLOCK_DURATION;
 let timerInterval = null;
-let gameActive = false; // Kept false until Start Simulation is clicked
+let gameActive = false;
 
-// Behavioral Metrics
 let totalFilesSorted = 0;
-let retroactiveFixCount = 0;
-let overQuotaCount = 0;
+let cardRenderTimestamp = 0;
 
 let processedFiles = [];
 let currentCard = null;
+
+// EVENT AUDIT LOG QUEUE
+let eventLog = [];
+
+function recordEvent(category, eventName, detail = "", latencyMs = "") {
+    eventLog.push({
+        timestamp: new Date().toISOString(),
+        block: currentBlock,
+        timeLeft: timeLeft,
+        category: category,
+        eventName: eventName,
+        detail: detail,
+        latencyMs: latencyMs,
+        currentScore: score
+    });
+}
 
 const categories = ['Category A', 'Category B'];
 
@@ -184,6 +201,7 @@ function generateCard(index) {
 function startSimulation() {
     document.getElementById('instructions-modal').classList.add('hidden');
     gameActive = true;
+    recordEvent("USER_ACTION", "START_SIMULATION_CLICK", "User dismissed onboarding modal");
     startBlock(1);
 }
 
@@ -197,6 +215,8 @@ function startBlock(blockNum) {
     document.getElementById('quota-display').innerText = `${itemsProcessedInBlock} / ${mandatoryQuota}`;
     document.getElementById('quota-banner').classList.add('hidden');
     
+    recordEvent("SYSTEM_EVENT", "BLOCK_STARTED", `Block ${currentBlock} initiated`);
+
     currentCard = generateCard(totalFilesSorted + 1);
     renderCard();
     renderOutbox();
@@ -208,12 +228,13 @@ function startBlock(blockNum) {
         timeLeft--;
         document.getElementById('timer-display').innerText = timeLeft;
 
-        // Covert Trigger: Injected Outbox Error at 60s remaining in Block 1 & 2
+        // Covert Trigger: Injected Outbox Error at 60s remaining
         if (timeLeft === 60 && processedFiles.length >= 4 && !processedFiles[3].hasBeenCorrupted) {
             injectRetroactiveError(3);
         }
 
         if (timeLeft <= 0) {
+            recordEvent("SYSTEM_EVENT", "BLOCK_TIMEOUT", `Block ${currentBlock} expired`);
             advanceBlock();
         }
     }, 1000);
@@ -230,10 +251,16 @@ function renderCard() {
     } else {
         cardElem.className = "inline-block px-3 py-1 text-xs rounded bg-purple-900/50 text-purple-300 font-semibold";
     }
+
+    cardRenderTimestamp = performance.now();
+    recordEvent("SYSTEM_EVENT", "CARD_RENDERED", `Card ${currentCard.id} (${currentCard.type}) displayed`);
 }
 
 function sortActiveCard(selectedCategory) {
     if (!gameActive) return;
+
+    const clickTimestamp = performance.now();
+    const latency = Math.round(clickTimestamp - cardRenderTimestamp);
 
     totalFilesSorted++;
     itemsProcessedInBlock++;
@@ -241,6 +268,13 @@ function sortActiveCard(selectedCategory) {
     const isCorrect = selectedCategory === currentCard.type;
     if (isCorrect) score += 10;
     
+    recordEvent(
+        "USER_ACTION", 
+        "SORT_CLICK", 
+        `Filed ${currentCard.id} to ${selectedCategory} (Correct: ${isCorrect})`, 
+        latency
+    );
+
     processedFiles.unshift({
         ...currentCard,
         filedAs: selectedCategory,
@@ -250,12 +284,11 @@ function sortActiveCard(selectedCategory) {
     document.getElementById('quota-display').innerText = `${itemsProcessedInBlock} / ${mandatoryQuota}`;
     document.getElementById('score-display').innerText = score;
 
-    // Check Quota Condition
-    if (itemsProcessedInBlock >= mandatoryQuota) {
+    if (itemsProcessedInBlock === mandatoryQuota) {
         document.getElementById('quota-banner').classList.remove('hidden');
-        if (itemsProcessedInBlock > mandatoryQuota) {
-            overQuotaCount++; // Voluntary extra-role effort
-        }
+        recordEvent("SYSTEM_EVENT", "QUOTA_UNLOCKED", `Mandatory quota of ${mandatoryQuota} met`);
+    } else if (itemsProcessedInBlock > mandatoryQuota) {
+        recordEvent("USER_ACTION", "OVER_QUOTA_SORT", `Sorted optional item #${itemsProcessedInBlock}`);
     }
 
     renderOutbox();
@@ -268,6 +301,7 @@ function injectRetroactiveError(index) {
         processedFiles[index].isCorrupted = true;
         processedFiles[index].hasBeenCorrupted = true;
         processedFiles[index].filedAs = processedFiles[index].type === 'Category A' ? 'Category B' : 'Category A';
+        recordEvent("SYSTEM_EVENT", "ERROR_INJECTED", `Outbox card ${processedFiles[index].id} corrupted`);
         renderOutbox();
     }
 }
@@ -278,9 +312,9 @@ function fixOutboxFile(index) {
     if (processedFiles[index].isCorrupted) {
         processedFiles[index].isCorrupted = false;
         processedFiles[index].filedAs = processedFiles[index].type;
-        retroactiveFixCount++; // Orderliness metric
         score += 15;
         document.getElementById('score-display').innerText = score;
+        recordEvent("USER_ACTION", "RETROACTIVE_FIX_CLICK", `Corrected outbox card ${processedFiles[index].id}`);
         renderOutbox();
     }
 }
@@ -310,7 +344,9 @@ function renderOutbox() {
 
 function advanceBlock() {
     if (timeLeft > 0 && itemsProcessedInBlock >= mandatoryQuota) {
-        score += (timeLeft * 15);
+        const bonus = timeLeft * 15;
+        score += bonus;
+        recordEvent("USER_ACTION", "ADVANCE_EARLY_CLICK", `Claimed speed bonus of +${bonus} points`);
         document.getElementById('score-display').innerText = score;
     }
 
@@ -326,14 +362,12 @@ function endGame() {
     gameActive = false;
     clearInterval(timerInterval);
 
+    recordEvent("SYSTEM_EVENT", "ASSESSMENT_COMPLETE", `Final Score: ${score}, Total Files: ${totalFilesSorted}`);
     document.getElementById('end-modal').classList.remove('hidden');
 
     const payload = {
-        score: score,
-        totalFilesSorted: totalFilesSorted,
-        retroactiveFixesPerformed: retroactiveFixCount,
-        voluntaryOverQuotaFiles: overQuotaCount,
-        completionTimeSeconds: (TOTAL_BLOCKS * BLOCK_DURATION) - timeLeft
+        sessionId: SESSION_ID,
+        events: eventLog
     };
 
     fetch(GOOGLE_WEB_APP_URL, {
@@ -344,13 +378,13 @@ function endGame() {
     })
     .then(() => {
         const status = document.getElementById('save-status');
-        status.innerText = "Data successfully saved to Google Sheets!";
+        status.innerText = "Event log successfully saved to Google Sheets!";
         status.className = "text-green-400 font-bold text-sm mb-4";
     })
     .catch(err => {
         console.error(err);
         const status = document.getElementById('save-status');
-        status.innerText = "Error saving data to Google Sheets.";
+        status.innerText = "Error saving event log to Google Sheets.";
         status.className = "text-red-500 font-bold text-sm mb-4";
     });
 }
