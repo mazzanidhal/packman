@@ -9,6 +9,8 @@
         body { background-color: #111; color: white; margin: 0; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; overflow: hidden; }
         .card { transition: all 0.2s ease; }
         .hidden { display: none !important; }
+        @keyframes pulse-slow { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .animate-pulse-slow { animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
     </style>
 </head>
 <body class="select-none w-full min-h-screen p-4 flex flex-col items-center justify-start">
@@ -18,10 +20,10 @@
         <div class="flex items-center gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-blue-400">Virtual Office: Document Processing Audit</h1>
-                <p class="text-xs text-gray-400">Section <span id="block-display" class="font-bold text-white">1 of 3</span> — <span id="section-title" class="text-yellow-400 font-semibold">Tutorial & Onboarding</span></p>
+                <p class="text-xs text-gray-400">Section <span id="block-display" class="font-bold text-white">1 of 3</span> — <span id="section-title" class="text-yellow-400 font-semibold">Practice Section</span></p>
             </div>
             <span class="px-2 py-0.5 bg-blue-950 border border-blue-700 text-blue-300 font-mono text-[10px] rounded font-bold">
-                v3.4.0-CleanIncentives
+                v3.7.0-HarmonizedCopy
             </span>
         </div>
         <div class="flex items-center gap-3">
@@ -39,7 +41,7 @@
         
         <!-- Status Panel -->
         <div class="flex justify-between items-center mb-4 bg-gray-800 p-4 rounded-lg border border-gray-700 text-base">
-            <div>Section Progress: <span id="quota-display" class="font-bold text-yellow-400">0 / 3</span></div>
+            <div>Section Progress: <span id="quota-display" class="font-bold text-yellow-400">0 / 5</span></div>
             <div>Time Remaining: <span id="timer-display" class="font-bold text-cyan-400">Untimed</span></div>
             <div>Score: <span id="score-display" class="font-bold text-green-400">0</span></div>
         </div>
@@ -47,18 +49,16 @@
         <!-- Section Context Banner -->
         <div id="section-banner" class="mb-4 p-3 bg-blue-950/80 border border-blue-600 rounded-lg flex justify-between items-center text-xs">
             <div id="section-banner-text" class="text-blue-200">
-                <span class="font-bold text-white">SECTION 1 (TUTORIAL - UNTIMED):</span> Process 3 standard files (+10 correct / -5 incorrect). Learn how to inspect items in your Outbox Tray when system flags occur.
+                <span class="font-bold text-white">SECTION 1 (PRACTICE - UNTIMED):</span> Process 5 practice files (+10 correct / -5 incorrect). The Quality Control System will periodically flag outbox items.
             </div>
         </div>
 
-        <!-- System Alert Flag Container -->
-        <div id="compliance-alert" class="hidden mb-4 p-3 bg-red-950 border border-red-600 rounded-lg flex items-center justify-between animate-pulse">
-            <div class="flex items-center gap-2 text-xs text-red-200">
+        <!-- Streamlined QC Alert Banner -->
+        <div id="compliance-alert" class="hidden mb-4 p-3 bg-amber-950/90 border border-amber-500 rounded-lg flex items-center justify-between animate-pulse-slow">
+            <div class="flex items-center gap-2 text-xs text-amber-200">
                 <span class="text-lg">⚠️</span>
-                <div>
-                    <span class="font-bold text-red-400 block">ROUTINE COMPLIANCE SPOT-CHECK</span>
-                    System Quality Control requires a verification audit of recent filings. Click 🔍 Inspect on any item in your Outbox Tray to clear this alert.
-                </div>
+                <span class="font-bold text-amber-400">QUALITY CONTROL AUDIT FLAGGED:</span>
+                <span id="flag-detail-text">A previously filed folder in your Outbox Tray has been tagged for review.</span>
             </div>
         </div>
 
@@ -66,10 +66,19 @@
         <div class="grid grid-cols-12 gap-6 flex-1 min-h-[420px]">
             
             <!-- Left: Primary Card Area -->
-            <div class="col-span-8 bg-gray-950 p-6 rounded-lg border border-gray-800 flex flex-col items-center justify-between">
-                <div class="text-xs text-gray-500 uppercase tracking-widest self-start font-semibold">Active Incoming Document</div>
+            <div id="card-arena-container" class="col-span-8 bg-gray-950 p-6 rounded-lg border border-gray-800 flex flex-col items-center justify-between relative overflow-hidden">
                 
-                <div id="active-card" class="card bg-gray-800 border-2 border-blue-500 rounded-xl p-8 w-80 text-center my-auto shadow-2xl">
+                <!-- Active High-Salience Inspection Overlay Banner -->
+                <div id="inspection-mode-header" class="hidden absolute top-0 left-0 right-0 bg-yellow-500 text-black py-2 px-4 text-center font-bold text-xs uppercase tracking-widest flex justify-between items-center z-10 shadow-lg">
+                    <span>🔍 Active Outbox Inspection Mode</span>
+                    <button onclick="exitInspectionMode()" class="px-2 py-0.5 bg-black text-yellow-400 text-[10px] rounded hover:bg-gray-900 transition">Return to Filing →</button>
+                </div>
+
+                <div class="text-xs text-gray-500 uppercase tracking-widest self-start font-semibold mt-2">
+                    <span id="card-area-label">Active Incoming Document</span>
+                </div>
+                
+                <div id="active-card" class="card bg-gray-800 border-2 border-blue-500 rounded-xl p-8 w-80 text-center my-auto shadow-2xl relative z-0">
                     <div id="card-id" class="text-sm text-blue-400 font-mono mb-2 font-bold">DOC-101</div>
                     <div id="card-name" class="text-2xl font-bold text-white mb-2">Quarterly Audit Report</div>
                     <div id="card-rule-detail" class="text-xs text-gray-400 mb-3 font-mono">Region: US-East</div>
@@ -77,7 +86,7 @@
                 </div>
 
                 <!-- Action Controls -->
-                <div class="flex gap-6 w-full justify-center">
+                <div id="action-buttons-container" class="flex gap-6 w-full justify-center">
                     <button onclick="sortActiveCard('Category A')" class="flex-1 py-4 bg-blue-700 hover:bg-blue-600 active:bg-blue-800 rounded-lg font-bold text-base transition shadow-md">
                         File to Category A
                     </button>
@@ -101,11 +110,11 @@
     <div id="instructions-modal" class="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-900 border border-gray-800 p-8 rounded-lg max-w-xl w-full relative shadow-2xl">
             <h2 id="modal-heading" class="text-2xl font-bold text-blue-400 mb-2 border-b border-gray-800 pb-2">
-                Section 1 Instructions: Tutorial & Onboarding
+                Section 1 Instructions: Practice & Onboarding
             </h2>
             <div id="modal-body-content" class="space-y-3 my-4 text-xs text-gray-300"></div>
             <button id="modal-start-btn" onclick="startCurrentSection()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm rounded shadow-lg transition">
-                Begin Section 1 →
+                Begin Section 1 (Practice) →
             </button>
         </div>
     </div>
@@ -155,15 +164,17 @@ const BLOCK_DURATION = 120;
 let score = 0;
 let itemsProcessedInBlock = 0;
 let correctInBlock = 0;
-let sectionQuota = 3; 
+let sectionQuota = 5; 
 let timeLeft = BLOCK_DURATION;
 let timerInterval = null;
 let gameActive = false;
+let isInspecting = false;
 
 // Metrics
 let totalFilesSorted = 0;
 let spontaneousAudits = 0; 
 let activeComplianceFlag = false;
+let flaggedDocId = null;
 let complianceFlagTimestamp = 0; 
 let complianceResolutionLatency = null; 
 
@@ -244,59 +255,61 @@ function generateCard(fileIndexInBlock) {
     };
 }
 
+// INSTRUCTION MODAL RENDERER
 function renderInstructionModal(sectionNum) {
     const heading = document.getElementById('modal-heading');
     const body = document.getElementById('modal-body-content');
     const btn = document.getElementById('modal-start-btn');
 
     if (sectionNum === 1) {
-        heading.innerText = "Section 1 Instructions: Tutorial & Onboarding";
+        heading.innerText = "Section 1 Instructions: Practice & Onboarding";
         body.innerHTML = `
+            <div class="p-3 bg-blue-950/60 rounded border border-blue-800 flex items-start gap-3">
+                <div class="text-cyan-400 font-bold text-sm">🏁</div>
+                <div><span class="font-bold text-white block">1. Practice Section (Untimed)</span>Section 1 is an untimed practice round with <span class="text-white font-bold">5 files total</span> to help you get familiar with filing documents and managing your outbox.</div>
+            </div>
             <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
                 <div class="text-blue-400 font-bold text-sm">📁</div>
-                <div><span class="font-bold text-white block">1. Classification Task</span>Match incoming documents strictly by their <span class="text-white font-bold">Text Classification Badge</span> (Category A vs Category B).</div>
+                <div><span class="font-bold text-white block">2. Classification Task</span>Match incoming documents strictly by their <span class="text-white font-bold">Text Classification Badge</span> (Category A vs Category B).</div>
+            </div>
+            <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
+                <div class="text-amber-400 font-bold text-sm">🔍</div>
+                <div><span class="font-bold text-white block">3. Quality Control Audits & Outbox Inspection</span>The Quality Control System periodically audits filed work by attaching a <span class="text-amber-400 font-bold">⚠️ QC FLAG</span> to a folder in your Outbox Tray. You can click <span class="text-cyan-300 font-bold">🔍 Inspect</span> on any folder in your Outbox at any time to review past filings.</div>
             </div>
             <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
                 <div class="text-green-400 font-bold text-sm">⚖️</div>
-                <div><span class="font-bold text-white block">2. Scoring Engine</span>Receive <span class="text-green-400 font-bold">+10 points</span> for every correct classification and <span class="text-red-400 font-bold">-5 points</span> for misclassification.</div>
-            </div>
-            <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
-                <div class="text-yellow-400 font-bold text-sm">⏱️</div>
-                <div><span class="font-bold text-white block">3. Untimed Practice</span>Process <span class="text-white font-bold">3 files total</span> with no clock timer. Learn how to click <span class="text-blue-300 font-bold">🔍 Inspect</span> in your Outbox Tray to clear compliance alerts when they appear.</div>
+                <div><span class="font-bold text-white block">4. Scoring</span>Receive <span class="text-green-400 font-bold">+10 points</span> for correct classification and <span class="text-red-400 font-bold">-5 points</span> for misclassification.</div>
             </div>
         `;
-        btn.innerText = "Begin Section 1 (Tutorial) →";
+        btn.innerText = "Begin Section 1 (Practice) →";
     } else if (sectionNum === 2) {
         heading.innerText = "Section 2 Instructions: Monitored Quality Audit";
         body.innerHTML = `
-            <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
-                <div class="text-cyan-400 font-bold text-sm">⏱️</div>
-                <div><span class="font-bold text-white block">1. Timed Execution & Quota</span>You have <span class="text-cyan-300 font-bold">120 seconds</span> to process a mandatory quota of <span class="text-white font-bold">10 documents</span>.</div>
-            </div>
-            <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
-                <div class="text-purple-400 font-bold text-sm">👁️</div>
-                <div><span class="font-bold text-white block">2. Visual Badge Strain</span>Visual badge colors (blue/purple) will now vary independently. Ignore the badge color and sort strictly by the <span class="text-white font-bold">Badge Text</span>.</div>
-            </div>
-            <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
-                <div class="text-red-400 font-bold text-sm">⚠️</div>
-                <div><span class="font-bold text-white block">3. Active Quality Control (QC) Flags</span>Automated Quality Control is <span class="text-red-400 font-bold">ACTIVE</span>. When an alert triggers, pause and click <span class="text-blue-300 font-bold">🔍 Inspect</span> on an Outbox item to resolve it.</div>
+            <div class="p-3 bg-blue-950/80 rounded border border-blue-700 flex items-start gap-3">
+                <div class="text-cyan-400 font-bold text-sm">⚡</div>
+                <div>
+                    <span class="font-bold text-white text-sm block mb-1">WHAT'S CHANGING IN SECTION 2:</span>
+                    <ul class="list-disc list-inside space-y-1 text-gray-300 text-xs">
+                        <li><span class="text-cyan-300 font-bold">Countdown Timer Activated:</span> You have <span class="text-white font-bold">120 seconds</span> to process a quota of <span class="text-white font-bold">10 files</span>.</li>
+                        <li><span class="text-purple-300 font-bold">Visual Badge Variation:</span> Visual badge colors (blue/purple) now vary independently. Sort strictly by <span class="text-white font-bold">Badge Text</span>.</li>
+                        <li>The Quality Control System remains <span class="text-amber-400 font-bold">ACTIVE</span> and will periodically flag outbox items.</li>
+                    </ul>
+                </div>
             </div>
         `;
         btn.innerText = "Begin Section 2 (Monitored Audit) →";
     } else if (sectionNum === 3) {
         heading.innerText = "Section 3 Instructions: Unmonitored Quality Operations";
         body.innerHTML = `
-            <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
-                <div class="text-yellow-400 font-bold text-sm">🏛️</div>
-                <div><span class="font-bold text-white block">1. Compliance Officer Out of Office</span>The automated Quality Control monitoring system is <span class="text-yellow-400 font-bold">OFFLINE</span>. No system flags will be issued.</div>
-            </div>
-            <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
-                <div class="text-cyan-400 font-bold text-sm">⏱️</div>
-                <div><span class="font-bold text-white block">2. Timed Execution & Quota</span>You have <span class="text-cyan-300 font-bold">120 seconds</span> to process a quota of <span class="text-white font-bold">10 documents</span> (+10 / -5 scoring rules apply).</div>
-            </div>
-            <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
-                <div class="text-blue-400 font-bold text-sm">🔍</div>
-                <div><span class="font-bold text-white block">3. Autonomous Quality Governance</span>Because no automated alerts will warn you of errors, you must maintain filing standards and inspect your Outbox Tray <span class="text-white font-bold">independently</span>.</div>
+            <div class="p-3 bg-yellow-950/80 rounded border border-yellow-700 flex items-start gap-3">
+                <div class="text-yellow-400 font-bold text-sm">⚡</div>
+                <div>
+                    <span class="font-bold text-white text-sm block mb-1">WHAT'S CHANGING IN SECTION 3:</span>
+                    <ul class="list-disc list-inside space-y-1 text-gray-300 text-xs">
+                        <li><span class="text-yellow-400 font-bold">Quality Control System Offline:</span> Automated Quality Control is <span class="text-white font-bold">OFFLINE</span>. No system flags will be issued.</li>
+                        <li><span class="text-white font-bold">Autonomous Operations:</span> You have <span class="text-cyan-300 font-bold">120 seconds</span> to process <span class="text-white font-bold">10 files</span>. Maintain filing quality and perform outbox audits on your own.</li>
+                    </ul>
+                </div>
             </div>
         `;
         btn.innerText = "Begin Section 3 (Unmonitored Ops) →";
@@ -316,20 +329,23 @@ function startBlock(blockNum) {
     itemsProcessedInBlock = 0;
     correctInBlock = 0;
     activeComplianceFlag = false;
+    flaggedDocId = null;
+    isInspecting = false;
+    exitInspectionModeUI();
     document.getElementById('compliance-alert').classList.add('hidden');
 
     if (timerInterval) clearInterval(timerInterval);
 
     if (currentBlock === 1) {
-        sectionQuota = 3;
-        document.getElementById('section-title').innerText = "Tutorial & Onboarding (Untimed)";
-        document.getElementById('section-banner-text').innerHTML = '<span class="font-bold text-white">SECTION 1 (TUTORIAL - UNTIMED):</span> Process 3 standard files (+10 correct / -5 incorrect). Learn how to inspect items in your Outbox Tray when system flags occur.';
+        sectionQuota = 5;
+        document.getElementById('section-title').innerText = "Practice Section (Untimed)";
+        document.getElementById('section-banner-text').innerHTML = '<span class="font-bold text-white">SECTION 1 (PRACTICE - UNTIMED):</span> Process 5 practice files (+10 correct / -5 incorrect). The Quality Control System will periodically flag outbox items.';
         document.getElementById('timer-display').innerText = "Untimed";
     } else if (currentBlock === 2) {
         sectionQuota = 10;
         timeLeft = BLOCK_DURATION;
         document.getElementById('section-title').innerText = "Monitored Operational Audit";
-        document.getElementById('section-banner-text').innerHTML = '<span class="font-bold text-white">SECTION 2 (MONITORED):</span> Process 10 files (+10 correct / -5 incorrect). Automated Quality Control is ACTIVE.';
+        document.getElementById('section-banner-text').innerHTML = '<span class="font-bold text-white">SECTION 2 (MONITORED):</span> Process 10 files (+10 correct / -5 incorrect). The Quality Control System is ACTIVE.';
         document.getElementById('timer-display').innerText = `${timeLeft}s`;
         
         timerInterval = setInterval(() => {
@@ -345,7 +361,7 @@ function startBlock(blockNum) {
         sectionQuota = 10;
         timeLeft = BLOCK_DURATION;
         document.getElementById('section-title').innerText = "Unmonitored Quality Operations";
-        document.getElementById('section-banner-text').innerHTML = '<span class="font-bold text-yellow-300">SECTION 3 (UNMONITORED):</span> Compliance officer is OUT OF OFFICE. No automated flags will be issued. Maintain quality standards independently.';
+        document.getElementById('section-banner-text').innerHTML = '<span class="font-bold text-yellow-300">SECTION 3 (UNMONITORED):</span> The Quality Control System is OFFLINE. No automated flags will be issued. Maintain quality standards independently.';
         document.getElementById('timer-display').innerText = `${timeLeft}s`;
 
         timerInterval = setInterval(() => {
@@ -370,6 +386,8 @@ function startBlock(blockNum) {
 }
 
 function renderCard() {
+    if (isInspecting) return;
+
     document.getElementById('card-id').innerText = currentCard.id;
     document.getElementById('card-name').innerText = currentCard.name;
     document.getElementById('card-rule-detail').innerText = `Region: ${currentCard.region} | Complexity: ${currentCard.isComplex ? 'High' : 'Standard'}`;
@@ -383,7 +401,7 @@ function renderCard() {
 }
 
 function sortActiveCard(selectedCategory) {
-    if (!gameActive) return;
+    if (!gameActive || isInspecting) return;
 
     const clickTimestamp = performance.now();
     const latency = Math.round(clickTimestamp - cardRenderTimestamp);
@@ -417,10 +435,18 @@ function sortActiveCard(selectedCategory) {
     document.getElementById('quota-display').innerText = `${itemsProcessedInBlock} / ${sectionQuota}`;
     document.getElementById('score-display').innerText = score;
 
-    if (currentBlock === 1 && itemsProcessedInBlock === 2) {
-        triggerComplianceFlag("Section 1 File #2 Tutorial Review");
-    } else if (currentBlock === 2 && (itemsProcessedInBlock === 6 || itemsProcessedInBlock === 10)) {
-        triggerComplianceFlag(`Section 2 File #${itemsProcessedInBlock} Automated QC Review`);
+    // LAGGED COMPLIANCE FLAG PROTOCOL
+    if (currentBlock === 1 && itemsProcessedInBlock === 3) {
+        const targetDoc = processedFiles[1] ? processedFiles[1].id : processedFiles[0].id;
+        triggerComplianceFlag(targetDoc, "Section 1 File #3 Notification (Flagged File #2)");
+    } 
+    else if (currentBlock === 2 && itemsProcessedInBlock === 6) {
+        const targetDoc = processedFiles[1] ? processedFiles[1].id : processedFiles[0].id;
+        triggerComplianceFlag(targetDoc, "Section 2 File #6 Notification (Flagged File #5)");
+    }
+    else if (currentBlock === 2 && itemsProcessedInBlock === 10) {
+        const targetDoc = processedFiles[1] ? processedFiles[1].id : processedFiles[0].id;
+        triggerComplianceFlag(targetDoc, "Section 2 File #10 Notification (Flagged File #9)");
     }
 
     renderOutbox();
@@ -434,11 +460,14 @@ function sortActiveCard(selectedCategory) {
     }
 }
 
-function triggerComplianceFlag(reason) {
+function triggerComplianceFlag(docId, reason) {
     activeComplianceFlag = true;
+    flaggedDocId = docId;
     complianceFlagTimestamp = performance.now();
+    document.getElementById('flag-detail-text').innerText = `Folder ${docId} in your Outbox Tray has been tagged for review.`;
     document.getElementById('compliance-alert').classList.remove('hidden');
-    recordEvent("SYSTEM_EVENT", "COMPLIANCE_FLAG_ISSUED", reason);
+    recordEvent("SYSTEM_EVENT", "COMPLIANCE_FLAG_ISSUED", `${reason} (Target Folder: ${docId})`);
+    renderOutbox();
 }
 
 function auditOutboxItem(docId) {
@@ -449,8 +478,9 @@ function auditOutboxItem(docId) {
 
     spontaneousAudits++;
 
-    if (activeComplianceFlag) {
+    if (activeComplianceFlag && docId === flaggedDocId) {
         activeComplianceFlag = false;
+        flaggedDocId = null;
         document.getElementById('compliance-alert').classList.add('hidden');
         complianceResolutionLatency = Math.round(performance.now() - complianceFlagTimestamp);
         recordEvent("USER_ACTION", "DUTIFULNESS_COMPLIANCE_RESOLVED", `Resolved for ${docId}`, complianceResolutionLatency);
@@ -458,19 +488,60 @@ function auditOutboxItem(docId) {
 
     recordEvent("USER_ACTION", "SPONTANEOUS_OUTBOX_AUDIT", `Inspected doc ${docId} (Sec ${currentBlock}, StealthIssue: ${file.hasStealthIssue || false})`);
 
-    document.getElementById('card-id').innerText = `${file.id} (INSPECTING ARCHIVE)`;
+    // ACTIVATE HIGH-SALIENCE INSPECTION MODE UI
+    isInspecting = true;
+    const arena = document.getElementById('card-arena-container');
+    const header = document.getElementById('inspection-mode-header');
+    const label = document.getElementById('card-area-label');
+    const cardBox = document.getElementById('active-card');
+    const actionBtns = document.getElementById('action-buttons-container');
+
+    header.classList.remove('hidden');
+    arena.classList.add('bg-yellow-950/20', 'border-yellow-500');
+    label.innerText = "OUTBOX ARCHIVE INSPECTION (READ-ONLY)";
+    label.className = "text-xs text-yellow-400 font-bold uppercase tracking-widest self-start mt-2";
+
+    cardBox.className = "card bg-gray-900 border-4 border-yellow-500 rounded-xl p-8 w-80 text-center my-auto shadow-2xl relative z-0 animate-pulse-slow";
+    
+    document.getElementById('card-id').innerText = `${file.id} [ARCHIVE PREVIEW]`;
     document.getElementById('card-name').innerText = file.name;
-    document.getElementById('card-rule-detail').innerText = `Filed As: ${file.filedAs} | Target: ${file.type} ${file.hasStealthIssue ? '| ⚠️ UNRESOLVED FORMAT' : ''}`;
+
+    const isMatch = (file.filedAs === file.type);
+    document.getElementById('card-rule-detail').innerText = isMatch 
+        ? `Status: VERIFIED & CORRECT | Filed As: ${file.filedAs}` 
+        : `Status: MISMATCH DETECTED | Filed As: ${file.filedAs} (Target: ${file.type})`;
     
     const cardElem = document.getElementById('card-type');
     cardElem.innerText = file.type;
     cardElem.className = `inline-block px-4 py-1.5 text-xs rounded-full font-bold tracking-wide ${file.badgeStyle}`;
 
-    const cardBox = document.getElementById('active-card');
-    cardBox.classList.add('border-yellow-400');
-    setTimeout(() => { cardBox.classList.remove('border-yellow-400'); }, 1500);
-
+    actionBtns.classList.add('opacity-30', 'pointer-events-none');
     renderOutbox();
+}
+
+function exitInspectionMode() {
+    if (!isInspecting) return;
+    isInspecting = false;
+    exitInspectionModeUI();
+    renderCard();
+    renderOutbox();
+    recordEvent("USER_ACTION", "EXIT_INSPECTION_MODE", "Returned to primary sorting deck");
+}
+
+function exitInspectionModeUI() {
+    const arena = document.getElementById('card-arena-container');
+    const header = document.getElementById('inspection-mode-header');
+    const label = document.getElementById('card-area-label');
+    const cardBox = document.getElementById('active-card');
+    const actionBtns = document.getElementById('action-buttons-container');
+
+    header.classList.add('hidden');
+    arena.classList.remove('bg-yellow-950/20', 'border-yellow-500');
+    label.innerText = "Active Incoming Document";
+    label.className = "text-xs text-gray-500 uppercase tracking-widest self-start font-semibold mt-2";
+
+    cardBox.className = "card bg-gray-800 border-2 border-blue-500 rounded-xl p-8 w-80 text-center my-auto shadow-2xl relative z-0";
+    actionBtns.classList.remove('opacity-30', 'pointer-events-none');
 }
 
 function renderOutbox() {
@@ -479,15 +550,18 @@ function renderOutbox() {
 
     processedFiles.forEach((file) => {
         const item = document.createElement('div');
-        item.className = "p-2.5 bg-gray-900 border border-gray-800 rounded text-xs flex justify-between items-center hover:border-gray-700 transition cursor-pointer";
+        const isFlagged = (activeComplianceFlag && file.id === flaggedDocId);
+
+        item.className = `p-2.5 bg-gray-900 rounded text-xs flex justify-between items-center hover:bg-gray-800/80 transition cursor-pointer ${isFlagged ? 'bg-amber-950/60' : ''}`;
         item.onclick = () => auditOutboxItem(file.id);
 
         item.innerHTML = `
-            <div>
+            <div class="flex items-center gap-2">
                 <span class="font-bold font-mono text-gray-200">${file.id}</span>
-                <span class="ml-2 text-[10px] text-gray-500">Filed: ${file.filedAs}</span>
+                <span class="text-[10px] text-gray-400">Filed: ${file.filedAs}</span>
+                ${isFlagged ? '<span class="px-1.5 py-0.5 bg-amber-500 text-black text-[9px] font-bold rounded animate-pulse">⚠️ QC FLAG</span>' : ''}
             </div>
-            <span class="text-[10px] text-gray-500 hover:text-blue-400 font-semibold">🔍 Inspect</span>
+            <span class="text-[10px] text-gray-400 hover:text-blue-400 font-semibold">🔍 Inspect</span>
         `;
         list.appendChild(item);
     });
