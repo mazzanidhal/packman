@@ -3,257 +3,300 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pac-Man Data Logger</title>
+    <title>Workplace Task Simulation</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #111; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        canvas { background-color: black; border: 4px solid #1919A6; border-radius: 5px; box-shadow: 0 0 15px rgba(25, 25, 166, 0.5); width: 100%; height: 100%; }
-        #ui-layer { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); width: 100%; height: 100%; z-index: 10; display: none; border-radius: 5px; }
+        body { background-color: #111; color: white; margin: 0; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+        .card { transition: all 0.2s ease; cursor: pointer; }
+        .card:hover { transform: translateY(-2px); }
         .hidden { display: none !important; }
     </style>
 </head>
-<body id="game-body">
+<body class="select-none">
 
-    <div class="mb-4 text-center flex flex-col items-center">
-        <div class="flex items-center gap-4 mb-2">
-            <h1 class="text-3xl font-bold text-yellow-400">Data-Logging Pac-Man</h1>
-            <!-- Fullscreen Toggle Button -->
-            <button onclick="toggleFullScreen()" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 border border-gray-500 rounded text-xs text-white font-semibold transition">
-                ⛶ Fullscreen
-            </button>
+    <!-- Top Navigation Header -->
+    <div class="w-full max-w-4xl px-4 py-2 flex justify-between items-center bg-gray-900 border-b border-gray-800 mb-4">
+        <div>
+            <h1 class="text-xl font-bold text-blue-400">Virtual Office: File Filing Task</h1>
+            <p class="text-xs text-gray-400">Sort incoming documents into the correct client folders.</p>
         </div>
-        <div class="flex gap-6 text-lg">
-            <div>Score: <span id="scoreDisplay" class="font-bold">0</span></div>
-            <div>Time: <span id="timeDisplay" class="font-bold">0</span>s</div>
-        </div>
-        <p class="text-sm text-gray-400 mt-2">Use Arrow Keys to move. Eat the big dots to eat ghosts!</p>
+        <button onclick="toggleFullScreen()" class="px-3 py-1 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded text-xs text-white transition">
+            ⛶ Fullscreen
+        </button>
     </div>
 
-    <div style="position: relative; width: 100%; max-width: 70vh; aspect-ratio: 1/1; margin: 0 auto;">
-        <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <!-- Main Game Interface -->
+    <div id="game-container" class="w-full max-w-4xl bg-gray-900 border border-gray-800 rounded-lg p-6 relative shadow-2xl">
         
-        <!-- Game Over / Data Screen -->
-        <div id="ui-layer">
-            <h2 id="endTitle" class="text-3xl font-bold text-red-500 mb-2">Game Over!</h2>
-            <div class="text-left mb-4 bg-gray-800 p-4 rounded w-3/4">
-                <p>Score: <span id="finalScore" class="text-yellow-400 font-bold">0</span></p>
-                <p>Time Alive: <span id="finalTime" class="text-blue-400 font-bold">0</span>s</p>
-                <p>Pellets Eaten: <span id="finalPellets" class="text-white font-bold">0</span></p>
-                <p>Ghosts Eaten: <span id="finalGhosts" class="text-cyan-400 font-bold">0</span></p>
+        <!-- Status Bar -->
+        <div class="flex justify-between items-center mb-6 bg-gray-800 p-3 rounded border border-gray-700">
+            <div>Quota Progress: <span id="quota-display" class="font-bold text-yellow-400">0 / 8</span></div>
+            <div>Time Remaining: <span id="timer-display" class="font-bold text-cyan-400">60</span>s</div>
+            <div>Score: <span id="score-display" class="font-bold text-green-400">0</span></div>
+        </div>
+
+        <!-- Quota Complete Notification Banner -->
+        <div id="quota-banner" class="hidden mb-4 p-3 bg-green-900/80 border border-green-500 rounded text-center flex justify-between items-center animate-pulse">
+            <span class="text-green-200 text-sm font-semibold">✓ Mandatory Quota Reached! You can advance now or continue filing remaining files.</span>
+            <button id="advance-btn" onclick="finishTask()" class="px-4 py-1.5 bg-green-600 hover:bg-green-500 text-white font-bold text-sm rounded shadow transition">
+                Finish & Advance →
+            </button>
+        </div>
+
+        <!-- Workplace Arena -->
+        <div class="grid grid-cols-12 gap-6 min-h-[340px]">
+            
+            <!-- Left: Incoming Active File -->
+            <div class="col-span-8 bg-gray-950 p-4 rounded border border-gray-800 flex flex-col items-center justify-between">
+                <div class="text-xs text-gray-500 uppercase tracking-widest self-start">Active File to File</div>
+                
+                <div id="active-card" class="card bg-gray-800 border-2 border-blue-500 rounded-lg p-6 w-64 text-center my-4 shadow-lg">
+                    <div id="card-id" class="text-xs text-blue-400 font-mono mb-1">DOC-101</div>
+                    <div id="card-name" class="text-lg font-bold text-white mb-2">Alpha Invoice</div>
+                    <div id="card-type" class="inline-block px-2 py-1 text-xs rounded bg-blue-900/50 text-blue-300 font-semibold">Category A</div>
+                </div>
+
+                <!-- Sorting Controls -->
+                <div class="flex gap-4 w-full justify-center">
+                    <button onclick="sortActiveCard('Category A')" class="flex-1 py-3 bg-blue-700 hover:bg-blue-600 rounded font-bold transition">
+                        File to Category A
+                    </button>
+                    <button onclick="sortActiveCard('Category B')" class="flex-1 py-3 bg-purple-700 hover:bg-purple-600 rounded font-bold transition">
+                        File to Category B
+                    </button>
+                </div>
             </div>
-            <p id="saveStatus" class="text-yellow-400 font-bold animate-pulse">Saving to Google Sheets...</p>
-            <button onclick="location.reload()" class="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">Play Again</button>
+
+            <!-- Right: Outbox / Completed Files Tray -->
+            <div class="col-span-4 bg-gray-950 p-4 rounded border border-gray-800 flex flex-col">
+                <div class="text-xs text-gray-500 uppercase tracking-widest mb-2">Outbox Tray (Completed)</div>
+                <div id="outbox-list" class="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[280px]">
+                    <!-- Processed files render here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- End Game Overlay -->
+    <div id="end-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-900 border border-gray-800 p-6 rounded-lg max-w-md w-full text-center">
+            <h2 class="text-2xl font-bold text-green-400 mb-2">Task Complete!</h2>
+            <p class="text-sm text-gray-400 mb-4">Your workspace behavioral metrics have been compiled.</p>
+            
+            <div id="save-status" class="text-yellow-400 font-bold animate-pulse text-sm mb-4">Saving data to Google Sheets...</div>
+            <button onclick="location.reload()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded">Replay Task</button>
         </div>
     </div>
 
 <script>
-/* Fullscreen Toggle Functionality */
-function toggleFullScreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-            console.error(`Error attempting to enable fullscreen: ${err.message}`);
-        });
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        }
-    }
-}
-
 /* ==========================================
-   IMPORTANT: GOOGLE SHEETS SETUP
+   CONFIG & GOOGLE SHEETS ENDPOINT
    ========================================== */
 const GOOGLE_WEB_APP_URL = "https://script.google.com/a/macros/tamu.edu/s/AKfycbybDNP2q6Gw-WpKItRRAnI1jJQvHxko_RMdeiSCfW9EkhODyTXqlWM88YrgLzp1VDkU/exec"; 
 
-/* Game Variables */
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-let score = 0, pelletsEaten = 0, ghostsEaten = 0, frames = 0;
-let gameActive = true, powerMode = false, powerTimer = 0;
-let startTime = Date.now();
-
-// Player
-let pacman = { x: 200, y: 200, size: 10, speed: 2.5, dx: 0, dy: 0 };
-
-// Entities
-let pellets = [];
-let powerPellets = [ {x: 30, y: 30}, {x: 370, y: 30}, {x: 30, y: 370}, {x: 370, y: 370} ];
-let ghosts = [
-    { x: 50, y: 50, size: 12, speed: 1.2, color: 'red', dx: 1.2, dy: 1.2 },
-    { x: 350, y: 350, size: 12, speed: 1.5, color: 'pink', dx: -1.5, dy: -1.5 }
-];
-
-// Generate standard pellets
-for (let i = 20; i < 400; i += 40) {
-    for (let j = 20; j < 400; j += 40) {
-        if ((i>150 && i<250) && (j>150 && j<250)) continue; // Keep center clear
-        pellets.push({ x: i, y: j, active: true });
+/* Fullscreen Toggle */
+function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => console.error(err));
+    } else {
+        if (document.exitFullscreen) document.exitFullscreen();
     }
-}
-
-/* Input */
-document.addEventListener("keydown", (e) => {
-    // Prevent default scrolling for arrow keys
-    if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
-        e.preventDefault();
-    }
-    if (e.key === "ArrowUp") { pacman.dx = 0; pacman.dy = -pacman.speed; }
-    if (e.key === "ArrowDown") { pacman.dx = 0; pacman.dy = pacman.speed; }
-    if (e.key === "ArrowLeft") { pacman.dx = -pacman.speed; pacman.dy = 0; }
-    if (e.key === "ArrowRight") { pacman.dx = pacman.speed; pacman.dy = 0; }
-});
-
-/* Game Engine */
-function update() {
-    if (!gameActive) return;
-    frames++;
-    document.getElementById("scoreDisplay").innerText = score;
-    document.getElementById("timeDisplay").innerText = Math.floor((Date.now() - startTime) / 1000);
-
-    // Power Mode Timer
-    if (powerMode) {
-        powerTimer--;
-        if (powerTimer <= 0) powerMode = false;
-    }
-
-    // Move Pacman
-    pacman.x += pacman.dx;
-    pacman.y += pacman.dy;
-    
-    // Wall wrapping
-    if (pacman.x < 0) pacman.x = 400; if (pacman.x > 400) pacman.x = 0;
-    if (pacman.y < 0) pacman.y = 400; if (pacman.y > 400) pacman.y = 0;
-
-    // Eat standard pellets
-    pellets.forEach(p => {
-        if (p.active && Math.hypot(pacman.x - p.x, pacman.y - p.y) < pacman.size + 3) {
-            p.active = false;
-            score += 10;
-            pelletsEaten++;
-        }
-    });
-
-    // Eat Power Pellets
-    powerPellets.forEach((pp, index) => {
-        if (Math.hypot(pacman.x - pp.x, pacman.y - pp.y) < pacman.size + 6) {
-            powerPellets.splice(index, 1);
-            score += 50;
-            powerMode = true;
-            powerTimer = 300; // ~5 seconds at 60fps
-        }
-    });
-
-    // Move & Check Ghosts
-    ghosts.forEach(g => {
-        // Simple bounce AI
-        g.x += g.dx; g.y += g.dy;
-        if (g.x < 10 || g.x > 390) g.dx *= -1;
-        if (g.y < 10 || g.y > 390) g.dy *= -1;
-
-        // Collision
-        if (Math.hypot(pacman.x - g.x, pacman.y - g.y) < pacman.size + g.size) {
-            if (powerMode) {
-                // Eat ghost
-                g.x = 200; g.y = 200; // Reset to center
-                score += 200;
-                ghostsEaten++;
-            } else {
-                // Hit by ghost
-                endGame();
-            }
-        }
-    });
-}
-
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw standard pellets
-    ctx.fillStyle = "white";
-    pellets.forEach(p => {
-        if (p.active) {
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    });
-
-    // Draw Power Pellets
-    ctx.fillStyle = (frames % 20 < 10) ? "white" : "yellow"; // Blink effect
-    powerPellets.forEach(pp => {
-        ctx.beginPath();
-        ctx.arc(pp.x, pp.y, 6, 0, Math.PI * 2);
-        ctx.fill();
-    });
-
-    // Draw Pacman
-    ctx.fillStyle = "yellow";
-    ctx.beginPath();
-    ctx.arc(pacman.x, pacman.y, pacman.size, 0.2 * Math.PI, 1.8 * Math.PI);
-    ctx.lineTo(pacman.x, pacman.y);
-    ctx.fill();
-
-    // Draw Ghosts
-    ghosts.forEach(g => {
-        ctx.fillStyle = powerMode ? "cyan" : g.color;
-        ctx.beginPath();
-        ctx.arc(g.x, g.y, g.size, 0, Math.PI * 2);
-        ctx.fill();
-    });
-}
-
-function loop() {
-    update();
-    draw();
-    if (gameActive) requestAnimationFrame(loop);
 }
 
 /* ==========================================
-   DATA SENDING LOGIC
+   GAME STATE & BEHAVIORAL LOGGING VARIABLES
    ========================================== */
-function endGame() {
-    gameActive = false;
-    let finalTime = Math.floor((Date.now() - startTime) / 1000);
-    
-    // Update UI
-    document.getElementById("ui-layer").style.display = "flex";
-    document.getElementById("finalScore").innerText = score;
-    document.getElementById("finalTime").innerText = finalTime;
-    document.getElementById("finalPellets").innerText = pelletsEaten;
-    document.getElementById("finalGhosts").innerText = ghostsEaten;
+let score = 0;
+let itemsProcessed = 0;
+let mandatoryQuota = 8;
+let timeLeft = 60;
+let timerInterval = null;
+let gameActive = true;
 
-    // Prepare data
-    const gameData = {
-        score: score,
-        playTime: finalTime,
-        pelletsEaten: pelletsEaten,
-        ghostsEaten: ghostsEaten
+// Covert Behavioral Metrics
+let retroactiveFixCount = 0;     // Orderliness / Attention to Detail metric
+let overQuotaCount = 0;          // Achievement Striving metric
+let quotaReachedTimestamp = null;// Time when minimum threshold was met
+let totalFilesSorted = 0;
+
+/* Document Queue Generation */
+const categories = ['Category A', 'Category B'];
+let currentCard = null;
+let processedFiles = [];
+
+function generateCard(index) {
+    const type = categories[Math.floor(Math.random() * categories.length)];
+    return {
+        id: `DOC-${100 + index}`,
+        name: type === 'Category A' ? 'Alpha Report' : 'Beta Ledger',
+        type: type,
+        status: 'correct'
     };
+}
 
-    const statusText = document.getElementById("saveStatus");
+/* Initialize Game Engine */
+function init() {
+    currentCard = generateCard(1);
+    renderCard();
+    
+    timerInterval = setInterval(() => {
+        if (!gameActive) return;
+        timeLeft--;
+        document.getElementById('timer-display').innerText = timeLeft;
 
-    // Send data to Google Sheets
-    fetch(GOOGLE_WEB_APP_URL, {
-        method: 'POST',
-        mode: 'no-cors', 
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(gameData)
-    })
-    .then(() => {
-        statusText.innerText = "Data successfully saved to Google Sheets!";
-        statusText.className = "text-green-400 font-bold";
-    })
-    .catch(error => {
-        console.error("Error saving data:", error);
-        statusText.innerText = "Failed to save data. Check console.";
-        statusText.className = "text-red-500 font-bold";
+        // Trigger Silent Injected Error at second 45 on item #3 in the outbox
+        if (timeLeft === 45 && processedFiles.length >= 3 && !processedFiles[2].hasBeenCorrupted) {
+            injectRetroactiveError(2);
+        }
+
+        if (timeLeft <= 0) {
+            endGame();
+        }
+    }, 1000);
+}
+
+function renderCard() {
+    document.getElementById('card-id').innerText = currentCard.id;
+    document.getElementById('card-name').innerText = currentCard.name;
+    document.getElementById('card-type').innerText = currentCard.type;
+    
+    // Styling toggle based on category
+    const cardElem = document.getElementById('card-type');
+    if (currentCard.type === 'Category A') {
+        cardElem.className = "inline-block px-2 py-1 text-xs rounded bg-blue-900/50 text-blue-300 font-semibold";
+    } else {
+        cardElem.className = "inline-block px-2 py-1 text-xs rounded bg-purple-900/50 text-purple-300 font-semibold";
+    }
+}
+
+/* Primary Sorting Action */
+function sortActiveCard(selectedCategory) {
+    if (!gameActive) return;
+
+    totalFilesSorted++;
+    const isCorrect = selectedCategory === currentCard.type;
+    if (isCorrect) score += 10;
+    
+    // Push into Outbox
+    processedFiles.unshift({
+        ...currentCard,
+        filedAs: selectedCategory,
+        isCorrupted: false
+    });
+
+    itemsProcessed++;
+    document.getElementById('quota-display').innerText = `${itemsProcessed} / ${mandatoryQuota}`;
+    document.getElementById('score-display').innerText = score;
+
+    // Check Quota State
+    if (itemsProcessed >= mandatoryQuota) {
+        document.getElementById('quota-banner').classList.remove('hidden');
+        if (!quotaReachedTimestamp) quotaReachedTimestamp = Date.now();
+        if (itemsProcessed > mandatoryQuota) {
+            overQuotaCount++; // Logging over-quota voluntary effort
+        }
+    }
+
+    renderOutbox();
+    
+    // Load next card
+    currentCard = generateCard(totalFilesSorted + 1);
+    renderCard();
+}
+
+/* ==========================================
+   COVERT MINI-EVENT: SILENT RETROACTIVE AUDIT
+   ========================================== */
+function injectRetroactiveError(index) {
+    // Quietly corrupt a file in the outbox tray
+    processedFiles[index].isCorrupted = true;
+    processedFiles[index].hasBeenCorrupted = true;
+    processedFiles[index].filedAs = processedFiles[index].type === 'Category A' ? 'Category B' : 'Category A'; // Flip to mismatch
+    renderOutbox();
+}
+
+function fixOutboxFile(index) {
+    if (!gameActive) return;
+    
+    // Voluntary correction executed
+    if (processedFiles[index].isCorrupted) {
+        processedFiles[index].isCorrupted = false;
+        processedFiles[index].filedAs = processedFiles[index].type; // Revert back to correct state
+        retroactiveFixCount++;
+        score += 15; // Small reward
+        document.getElementById('score-display').innerText = score;
+        renderOutbox();
+    }
+}
+
+function renderOutbox() {
+    const list = document.getElementById('outbox-list');
+    list.innerHTML = '';
+
+    processedFiles.forEach((file, idx) => {
+        const item = document.createElement('div');
+        const isMismatch = file.filedAs !== file.type || file.isCorrupted;
+        
+        item.className = `p-2 rounded text-xs flex justify-between items-center border ${
+            isMismatch ? 'bg-red-950/60 border-red-500 text-red-200 animate-pulse cursor-pointer' : 'bg-gray-900 border-gray-800 text-gray-400'
+        }`;
+
+        item.innerHTML = `
+            <div>
+                <span class="font-bold font-mono">${file.id}</span>
+                <span class="ml-1 text-[10px] opacity-75">(${file.filedAs})</span>
+            </div>
+            ${isMismatch ? `<button onclick="fixOutboxFile(${idx})" class="px-2 py-0.5 bg-red-600 hover:bg-red-500 text-white rounded text-[10px] font-bold">Fix Error</button>` : `<span class="text-green-500">✓</span>`}
+        `;
+        list.appendChild(item);
     });
 }
 
-// Start Game
-loop();
+function finishTask() {
+    endGame();
+}
+
+/* ==========================================
+   DATA LOGGING TO GOOGLE SHEETS
+   ========================================== */
+function endGame() {
+    if (!gameActive) return;
+    gameActive = false;
+    clearInterval(timerInterval);
+
+    document.getElementById('end-modal').classList.remove('hidden');
+
+    // Compile psychological behavioral metrics
+    const payload = {
+        score: score,
+        totalFilesSorted: totalFilesSorted,
+        retroactiveFixesPerformed: retroactiveFixCount, // Orderliness & Meticulousness metric
+        voluntaryOverQuotaFiles: overQuotaCount,        // Achievement Striving metric
+        completionTimeSeconds: 60 - timeLeft
+    };
+
+    // Send payload to Google Sheets script
+    fetch(GOOGLE_WEB_APP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(() => {
+        const status = document.getElementById('save-status');
+        status.innerText = "Data successfully saved to Google Sheets!";
+        status.className = "text-green-400 font-bold text-sm mb-4";
+    })
+    .catch(err => {
+        console.error(err);
+        const status = document.getElementById('save-status');
+        status.innerText = "Error saving data to Google Sheets.";
+        status.className = "text-red-500 font-bold text-sm mb-4";
+    });
+}
+
+// Start simulation on load
+init();
 </script>
 </body>
 </html>
