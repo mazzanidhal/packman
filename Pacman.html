@@ -44,12 +44,12 @@
             <div class="text-left">
                 <div class="text-white text-base font-bold">Mandatory Quota Met! Choose Strategy:</div>
                 <div class="text-xs text-blue-200 mt-1">
-                    • <span class="text-yellow-300 font-semibold">Finish Block Now:</span> Claim +15 Speed Bonus points per remaining second.<br>
-                    • <span class="text-green-300 font-semibold">Continue Filing:</span> Earn +15 Yield points for every extra document sorted.
+                    • <span class="text-yellow-300 font-semibold">Process Optimization:</span> Claim calibrated speed bonus based on your average sorting pace.<br>
+                    • <span class="text-green-300 font-semibold">High-Volume Output:</span> Continue filing extra documents for +15 yield points each.
                 </div>
             </div>
             <button id="advance-btn" onclick="advanceBlock()" class="px-5 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-xs rounded shadow transition ml-4">
-                Claim Speed Bonus & Advance →
+                Lock Efficiency Bonus & Advance →
             </button>
         </div>
 
@@ -87,74 +87,61 @@
         </div>
     </div>
 
-    <!-- Onboarding / Instructions Modal -->
+    <!-- Onboarding Modal -->
     <div id="instructions-modal" class="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-900 border border-gray-800 p-8 rounded-lg max-w-xl w-full relative shadow-2xl">
             <h2 class="text-2xl font-bold text-blue-400 mb-2 border-b border-gray-800 pb-2">Task Instructions</h2>
-            
             <p class="text-gray-300 text-sm mb-4 leading-relaxed">
-                Welcome to the Virtual Office Audit task. In this simulation, you will manage document filing across <span class="text-white font-bold">3 Work Sections</span> (2 minutes per section).
+                Welcome to the Virtual Office Audit task. Manage document filing across <span class="text-white font-bold">3 Work Sections</span> (2 minutes per section).
             </p>
-
             <div class="space-y-3 mb-6 text-xs text-gray-300">
                 <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
                     <div class="text-blue-400 text-lg">📁</div>
                     <div>
                         <span class="font-bold text-white text-sm block mb-0.5">1. Primary Task</span>
-                        Match each incoming document to its designated folder button (<span class="text-blue-300 font-semibold">Category A</span> or <span class="text-purple-300 font-semibold">Category B</span>). Correctly sorted files earn 10 points each.
+                        Match incoming documents to <span class="text-blue-300 font-semibold">Category A</span> or <span class="text-purple-300 font-semibold">Category B</span>. Standard files earn 10 points.
                     </div>
                 </div>
-
                 <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
                     <div class="text-yellow-400 text-lg">🎯</div>
                     <div>
                         <span class="font-bold text-white text-sm block mb-0.5">2. Mandatory Quotas & Strategy</span>
-                        Each section has a minimum quota of 15 files. Once met, you can choose to:
-                        <ul class="list-disc list-inside mt-1 space-y-0.5 text-gray-400">
-                            <li><strong class="text-yellow-300">Claim Speed Bonus:</strong> Finish early to earn +15 points per remaining second.</li>
-                            <li><strong class="text-green-300">Continue Filing:</strong> Keep sorting extra documents to earn +15 yield points per file.</li>
-                        </ul>
+                        Each section has a minimum quota of 15 files. Once met, choose between advancing early for a pace-calibrated speed bonus or sorting extra items for overtime yield points.
                     </div>
                 </div>
-
                 <div class="p-3 bg-gray-950 rounded border border-gray-800 flex items-start gap-3">
                     <div class="text-red-400 text-lg">🔍</div>
                     <div>
-                        <span class="font-bold text-white text-sm block mb-0.5">3. Outbox Tray</span>
-                        Completed files appear in the right-hand Outbox tray. You can review your filed documents at any time during a section.
+                        <span class="font-bold text-white text-sm block mb-0.5">3. Outbox Verification</span>
+                        Filed items appear in your Outbox tray. You may inspect previously filed items at any time to verify filing accuracy.
                     </div>
                 </div>
             </div>
-
             <button onclick="startSimulation()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm rounded shadow-lg transition">
                 Begin Assessment →
             </button>
         </div>
     </div>
 
-    <!-- Early Finish Confirmation Modal -->
+    <!-- Confirm Early Exit Modal -->
     <div id="confirm-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-900 border border-red-800 p-6 rounded-lg max-w-md w-full text-center shadow-2xl">
             <h2 class="text-xl font-bold text-red-400 mb-2">Finish Assessment Early?</h2>
             <p class="text-xs text-gray-300 mb-6 leading-relaxed">
-                Are you sure you want to exit the assessment now? Your current score and progress across completed sections will be saved immediately.
+                Are you sure you want to exit the assessment now? Your current score and progress will be saved immediately.
             </p>
             <div class="flex gap-4">
-                <button onclick="cancelEarlyFinish()" class="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-white text-xs font-bold rounded">
-                    Cancel (Continue)
-                </button>
-                <button onclick="executeEarlyFinish()" class="flex-1 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded">
-                    Yes, Submit & Finish
-                </button>
+                <button onclick="cancelEarlyFinish()" class="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-white text-xs font-bold rounded">Cancel</button>
+                <button onclick="executeEarlyFinish()" class="flex-1 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded">Submit & Exit</button>
             </div>
         </div>
     </div>
 
-    <!-- Completion Modal -->
+    <!-- End Modal -->
     <div id="end-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-900 border border-gray-800 p-6 rounded-lg max-w-md w-full text-center">
             <h2 class="text-2xl font-bold text-green-400 mb-2">Assessment Complete!</h2>
-            <p class="text-sm text-gray-400 mb-4">All behavioral events have been saved live to Google Sheets.</p>
+            <p class="text-sm text-gray-400 mb-4">Your behavioral event stream has been transmitted.</p>
             <button onclick="location.reload()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded">Restart Simulation</button>
         </div>
     </div>
@@ -162,8 +149,8 @@
 <script>
 /* CONFIGURATION */
 const GOOGLE_WEB_APP_URL = "https://script.google.com/a/macros/tamu.edu/s/AKfycbybDNP2q6Gw-WpKItRRAnI1jJQvHxko_RMdeiSCfW9EkhODyTXqlWM88YrgLzp1VDkU/exec"; 
-
 const SESSION_ID = 'SESS-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+const INPUT_DEVICE_TYPE = ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'Touchscreen' : 'Mouse/Trackpad';
 
 function toggleFullScreen() {
     if (!document.fullscreenElement) {
@@ -188,29 +175,72 @@ let gameActive = false;
 let totalFilesSorted = 0;
 let cardRenderTimestamp = 0;
 
-let processedFiles = [];
-let currentCard = null;
+let processedFiles = []; // Master list of processed objects
+let decisionLatencies = []; // Array of ms latencies for SD computation
+let eventBuffer = []; // Local event queue for batching
 
+/* BATCHED EVENT QUEUE & BEACON ARCHITECTURE */
 function recordEvent(category, eventName, detail = "", latencyMs = "") {
-    const payload = {
+    const eventObj = {
         sessionId: SESSION_ID,
         timestamp: new Date().toISOString(),
         block: currentBlock,
         timeLeft: timeLeft,
         category: category,
         eventName: eventName,
-        detail: detail,
+        detail: `${detail} [Device: ${INPUT_DEVICE_TYPE}]`,
         latencyMs: latencyMs,
         currentScore: score
     };
 
-    fetch(GOOGLE_WEB_APP_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    }).catch(err => console.error("Live streaming error:", err));
+    eventBuffer.push(eventObj);
+
+    // Flush batch if buffer reaches 10 items
+    if (eventBuffer.length >= 10) {
+        flushEventBuffer();
+    }
 }
+
+function flushEventBuffer() {
+    if (eventBuffer.length === 0) return;
+
+    const payload = {
+        sessionId: SESSION_ID,
+        events: [...eventBuffer]
+    };
+
+    const dataString = JSON.stringify(payload);
+    eventBuffer = []; // Clear buffer
+
+    if (navigator.sendBeacon) {
+        const blob = new Blob([dataString], { type: 'application/json' });
+        navigator.sendBeacon(GOOGLE_WEB_APP_URL, blob);
+    } else {
+        fetch(GOOGLE_WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: dataString
+        }).catch(err => console.error("Batch flush error:", err));
+    }
+}
+
+// Guarantee event transmission on window close/tab hide
+window.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+        flushEventBuffer();
+    }
+});
+window.addEventListener('beforeunload', () => {
+    flushEventBuffer();
+});
+
+// Timer for periodic 10-second batch flushes
+setInterval(() => {
+    if (gameActive && eventBuffer.length > 0) {
+        flushEventBuffer();
+    }
+}, 10000);
 
 const categories = ['Category A', 'Category B'];
 
@@ -226,7 +256,7 @@ function generateCard(index) {
 function startSimulation() {
     document.getElementById('instructions-modal').classList.add('hidden');
     gameActive = true;
-    recordEvent("USER_ACTION", "START_SIMULATION_CLICK", "User dismissed onboarding modal");
+    recordEvent("USER_ACTION", "START_SIMULATION_CLICK", "User initiated simulation");
     startBlock(1);
 }
 
@@ -234,7 +264,6 @@ function startBlock(blockNum) {
     currentBlock = blockNum;
     itemsProcessedInBlock = 0;
     timeLeft = BLOCK_DURATION;
-    processedFiles = [];
     
     document.getElementById('block-display').innerText = `${currentBlock} of ${TOTAL_BLOCKS}`;
     document.getElementById('quota-display').innerText = `${itemsProcessedInBlock} / ${mandatoryQuota}`;
@@ -253,8 +282,9 @@ function startBlock(blockNum) {
         timeLeft--;
         document.getElementById('timer-display').innerText = timeLeft;
 
+        // Silent error injection at 60s without visual alert
         if (timeLeft === 60 && processedFiles.length >= 4 && !processedFiles[3].hasBeenCorrupted) {
-            injectRetroactiveError(3);
+            injectSilentError(processedFiles[3].id);
         }
 
         if (timeLeft <= 0) {
@@ -277,7 +307,7 @@ function renderCard() {
     }
 
     cardRenderTimestamp = performance.now();
-    recordEvent("SYSTEM_EVENT", "CARD_RENDERED", `Card ${currentCard.id} (${currentCard.type}) displayed`);
+    recordEvent("SYSTEM_EVENT", "CARD_RENDERED", `Card ${currentCard.id} displayed`);
 }
 
 function sortActiveCard(selectedCategory) {
@@ -285,6 +315,7 @@ function sortActiveCard(selectedCategory) {
 
     const clickTimestamp = performance.now();
     const latency = Math.round(clickTimestamp - cardRenderTimestamp);
+    decisionLatencies.push(latency);
 
     totalFilesSorted++;
     itemsProcessedInBlock++;
@@ -299,10 +330,14 @@ function sortActiveCard(selectedCategory) {
         latency
     );
 
+    // Unshift to master array keyed by unique ID
     processedFiles.unshift({
-        ...currentCard,
+        id: currentCard.id,
+        name: currentCard.name,
+        type: currentCard.type,
         filedAs: selectedCategory,
-        isCorrupted: false
+        isCorrupted: false,
+        auditCount: 0
     });
 
     document.getElementById('quota-display').innerText = `${itemsProcessedInBlock} / ${mandatoryQuota}`;
@@ -310,7 +345,7 @@ function sortActiveCard(selectedCategory) {
 
     if (itemsProcessedInBlock === mandatoryQuota) {
         document.getElementById('quota-banner').classList.remove('hidden');
-        recordEvent("SYSTEM_EVENT", "QUOTA_UNLOCKED", `Mandatory quota of ${mandatoryQuota} met`);
+        recordEvent("SYSTEM_EVENT", "QUOTA_UNLOCKED", `Mandatory quota met`);
     } else if (itemsProcessedInBlock > mandatoryQuota) {
         recordEvent("USER_ACTION", "OVER_QUOTA_SORT", `Sorted optional item #${itemsProcessedInBlock}`);
     }
@@ -320,57 +355,74 @@ function sortActiveCard(selectedCategory) {
     renderCard();
 }
 
-function injectRetroactiveError(index) {
-    if (processedFiles[index]) {
-        processedFiles[index].isCorrupted = true;
-        processedFiles[index].hasBeenCorrupted = true;
-        processedFiles[index].filedAs = processedFiles[index].type === 'Category A' ? 'Category B' : 'Category A';
-        recordEvent("SYSTEM_EVENT", "ERROR_INJECTED", `Outbox card ${processedFiles[index].id} corrupted`);
-        renderOutbox();
+function injectSilentError(docId) {
+    const file = processedFiles.find(f => f.id === docId);
+    if (file) {
+        file.isCorrupted = true;
+        file.hasBeenCorrupted = true;
+        file.filedAs = file.type === 'Category A' ? 'Category B' : 'Category A';
+        recordEvent("SYSTEM_EVENT", "SILENT_ERROR_INJECTED", `Doc ${docId} corrupted without UI prompt`);
     }
 }
 
-function fixOutboxFile(index) {
+// Unique ID keying for outbox auditing
+function auditAndFixOutboxFile(docId) {
     if (!gameActive) return;
     
-    if (processedFiles[index].isCorrupted) {
-        processedFiles[index].isCorrupted = false;
-        processedFiles[index].filedAs = processedFiles[index].type;
-        score += 15;
-        document.getElementById('score-display').innerText = score;
-        recordEvent("USER_ACTION", "RETROACTIVE_FIX_CLICK", `Corrected outbox card ${processedFiles[index].id}`);
+    const file = processedFiles.find(f => f.id === docId);
+    if (file) {
+        file.auditCount++;
+        
+        if (file.isCorrupted) {
+            file.isCorrupted = false;
+            file.filedAs = file.type;
+            score += 15;
+            document.getElementById('score-display').innerText = score;
+            recordEvent("USER_ACTION", "VOLUNTARY_AUDIT_FIX", `User inspected and corrected doc ${docId}`);
+        } else {
+            recordEvent("USER_ACTION", "VOLUNTARY_AUDIT_INSPECT", `User inspected doc ${docId} (Already Correct)`);
+        }
         renderOutbox();
     }
 }
 
+// Render Outbox capped to last 15 items to prevent DOM bloat
 function renderOutbox() {
     const list = document.getElementById('outbox-list');
     list.innerHTML = '';
 
-    processedFiles.forEach((file, idx) => {
+    const visibleFiles = processedFiles.slice(0, 15);
+
+    visibleFiles.forEach((file) => {
         const item = document.createElement('div');
-        const isMismatch = file.filedAs !== file.type || file.isCorrupted;
         
-        item.className = `p-2.5 rounded text-xs flex justify-between items-center border ${
-            isMismatch ? 'bg-red-950/80 border-red-500 text-red-200 animate-pulse' : 'bg-gray-900 border-gray-800 text-gray-400'
-        }`;
+        // Neutral styling without text prompts or visual pop-out
+        item.className = "p-2.5 bg-gray-900 border border-gray-800 rounded text-xs flex justify-between items-center hover:border-gray-700 transition cursor-pointer";
+        item.onclick = () => auditAndFixOutboxFile(file.id);
 
         item.innerHTML = `
             <div>
-                <span class="font-bold font-mono">${file.id}</span>
-                <span class="ml-1 text-[10px] opacity-75">(${file.filedAs})</span>
+                <span class="font-bold font-mono text-gray-200">${file.id}</span>
+                <span class="ml-2 text-[10px] text-gray-500">Filed: ${file.filedAs}</span>
             </div>
-            ${isMismatch ? `<button onclick="fixOutboxFile(${idx})" class="px-2 py-0.5 bg-red-600 hover:bg-red-500 text-white rounded text-[10px] font-bold">Fix Error</button>` : `<span class="text-green-500">✓</span>`}
+            <span class="text-[10px] text-gray-500 hover:text-blue-400">🔍 Inspect</span>
         `;
         list.appendChild(item);
     });
 }
 
 function advanceBlock() {
+    // Rebalanced Point Economy: Calculate speed bonus using candidate's mean response time
     if (timeLeft > 0 && itemsProcessedInBlock >= mandatoryQuota) {
-        const bonus = timeLeft * 15;
-        score += bonus;
-        recordEvent("USER_ACTION", "ADVANCE_EARLY_CLICK", `Claimed speed bonus of +${bonus} points`);
+        const meanLatencySec = decisionLatencies.length > 0 
+            ? (decisionLatencies.reduce((a,b)=>a+b,0) / decisionLatencies.length) / 1000 
+            : 1.5;
+            
+        const estimatedFilesRemaining = Math.floor(timeLeft / meanLatencySec);
+        const calibratedBonus = estimatedFilesRemaining * 15;
+        
+        score += calibratedBonus;
+        recordEvent("USER_ACTION", "ADVANCE_EARLY_CLICK", `Claimed calibrated bonus of +${calibratedBonus} pts (${estimatedFilesRemaining} est. files)`);
         document.getElementById('score-display').innerText = score;
     }
 
@@ -381,7 +433,6 @@ function advanceBlock() {
     }
 }
 
-/* EARLY FINISH CONTROLS */
 function confirmEarlyFinish() {
     document.getElementById('confirm-modal').classList.remove('hidden');
 }
@@ -392,7 +443,7 @@ function cancelEarlyFinish() {
 
 function executeEarlyFinish() {
     document.getElementById('confirm-modal').classList.add('hidden');
-    recordEvent("USER_ACTION", "EARLY_EXIT_CLICK", `User voluntarily finished simulation early during Block ${currentBlock}`);
+    recordEvent("USER_ACTION", "EARLY_EXIT_CLICK", `User exited simulation early during Block ${currentBlock}`);
     endGame();
 }
 
@@ -401,7 +452,13 @@ function endGame() {
     gameActive = false;
     clearInterval(timerInterval);
 
-    recordEvent("SYSTEM_EVENT", "ASSESSMENT_COMPLETE", `Final Score: ${score}, Total Files: ${totalFilesSorted}`);
+    // Compute standard deviation of latency for Cautiousness metric
+    const mean = decisionLatencies.length > 0 ? decisionLatencies.reduce((a,b)=>a+b,0)/decisionLatencies.length : 0;
+    const variance = decisionLatencies.length > 0 ? decisionLatencies.reduce((a,b)=>a+Math.pow(b-mean, 2),0)/decisionLatencies.length : 0;
+    const sdLatency = Math.round(Math.sqrt(variance));
+
+    recordEvent("SYSTEM_EVENT", "ASSESSMENT_COMPLETE", `Final Score: ${score}, Total Files: ${totalFilesSorted}, SD_Latency_ms: ${sdLatency}`);
+    flushEventBuffer();
     document.getElementById('end-modal').classList.remove('hidden');
 }
 </script>
